@@ -171,7 +171,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/main_fetch_users_and_save_csv.ts"
     },
     {
       "implementation_id": "user_to_row_csv_conversion",
