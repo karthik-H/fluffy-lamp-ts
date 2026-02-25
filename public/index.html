@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users – Table View</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      background: #0f0f12;
+      color: #e4e4e7;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #fafafa;
+    }
+    .error {
+      background: #3f1d1d;
+      color: #fca5a5;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #27272a;
+      background: #18181b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #27272a;
+    }
+    th {
+      font-weight: 600;
+      color: #a1a1aa;
+      background: #1f1f23;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #1f1f23; }
+    td { vertical-align: top; }
+    a { color: #93c5fd; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .loading { color: #a1a1aa; }
+  </style>
+</head>
+<body>
+  <h1>Users</h1>
+  <div id="message" class="loading">Loading…</div>
+  <div class="table-wrap" id="tableWrap" hidden>
+    <table>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const thead = document.getElementById('thead');
+    const tbody = document.getElementById('tbody');
+    const message = document.getElementById('message');
+    const tableWrap = document.getElementById('tableWrap');
+
+    async function load() {
+      try {
+        const res = await fetch('/api/users');
+        const data = await res.json();
+        if (!res.ok) {
+          message.textContent = data.error || 'Failed to load users';
+          message.className = 'error';
+          return;
+        }
+        if (!data.length) {
+          message.textContent = 'No users in CSV. Run: npm run fetch';
+          message.className = 'error';
+          return;
+        }
+        message.hidden = true;
+        tableWrap.hidden = false;
+        const keys = Object.keys(data[0]);
+        thead.innerHTML = '<tr>' + keys.map(k => `<th>${escapeHtml(k)}</th>`).join('') + '</tr>';
+        tbody.innerHTML = data.map(row =>
+          '<tr>' + keys.map(k => {
+            const v = row[k] ?? '';
+            if (k === 'website' && v) return `<td><a href="${escapeAttr(v)}" target="_blank" rel="noopener">${escapeHtml(v)}</a></td>`;
+            return `<td>${escapeHtml(v)}</td>`;
+          }).join('') + '</tr>'
+        ).join('');
+      } catch (e) {
+        message.textContent = 'Network error: ' + e.message;
+        message.className = 'error';
+      }
+    }
+
+    function escapeHtml(s) {
+      const div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s).replace(/"/g, '&quot;');
+    }
+
+    load();
+  </script>
+</body>
+</html>
