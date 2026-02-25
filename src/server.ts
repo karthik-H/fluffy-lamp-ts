@@ -63,3 +63,5 @@ app.use(express.static(PUBLIC_DIR));
 app.listen(PORT, () => {
   console.log(`Server at http://localhost:${PORT}`);
 });
+
+export { parseCsvLine, csvToJson };

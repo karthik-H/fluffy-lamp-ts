@@ -28,7 +28,7 @@ function createTestApp() {
       if (lines.length === 1) return res.status(200).json([]);
       const users = [];
       for (let i = 1; i < lines.length; i++) {
-        const values = [];
+        const values: string[] = [];
         let current = "";
         let inQuotes = false;
         for (let j = 0; j < lines[i].length; j++) {

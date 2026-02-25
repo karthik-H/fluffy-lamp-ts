@@ -32,8 +32,8 @@ function cleanDataDir() {
 }
 
 // Helper: mock console
-let logSpy: jest.SpyInstance;
-let errorSpy: jest.SpyInstance;
+let logSpy: ReturnType<typeof jest.spyOn>;
+let errorSpy: ReturnType<typeof jest.spyOn>;
 
 beforeEach(() => {
   cleanDataDir();

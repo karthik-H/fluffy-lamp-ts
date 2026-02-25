@@ -3,6 +3,7 @@ import path from 'path';
 import { writeFileSync } from '../../src/fetch-users';
 
 jest.mock('fs');
+(fs as any).__mockFileContent = '';
 
 const CSV_PATH = path.join(__dirname, 'test_users.csv');
 const CSV_PATH_INVALID = path.join(__dirname, 'nonexistent_dir', 'test_users.csv');
