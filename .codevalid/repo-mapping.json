@@ -1,0 +1,51 @@
+{
+  "task_2938716450_20260225110000": {
+    "implementation": [
+      {
+        "How_is_it_connected_to_implementation": "This function fetches user data from the JSONPlaceholder API, processes it, and writes it to a CSV file. It is the entry point for the data retrieval and storage logic.",
+        "file_path": "src/fetch-users.ts",
+        "id": "main_fetch_users_and_save_csv",
+        "name": "main()",
+        "pseudo_code": "async function main():\n    fetch user data from JSONPlaceholder API\n    IF fetch fails\n        throw error\n    ELSE\n        parse response as JSON\n        create CSV headers\n        FOR each user in users\n            convert user to CSV row\n        join rows into CSV string\n        create data directory if not exists\n        write CSV string to file\n        log success",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Converts a user object into a CSV row, used by main() to format each user's data for CSV output.",
+        "file_path": "src/fetch-users.ts",
+        "id": "user_to_row_csv_conversion",
+        "name": "userToRow(u: User)",
+        "pseudo_code": "function userToRow(user):\n    return array of [escaped name, escaped username, escaped email]",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Writes the generated CSV string to the target file, completing the storage step.",
+        "file_path": "src/fetch-users.ts",
+        "id": "write_csv_to_file",
+        "name": "writeFileSync",
+        "pseudo_code": "write CSV string to file at CSV_PATH",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Provides an API endpoint to retrieve the stored user data as JSON, reading from the CSV file created by main().",
+        "file_path": "src/server.ts",
+        "id": "users_api_endpoint",
+        "name": "app.get('/api/users')",
+        "pseudo_code": "on GET /api/users:\n    IF CSV file does not exist\n        respond with 404 and error message\n    ELSE\n        read CSV file\n        convert CSV to JSON\n        respond with JSON data",
+        "type": "endpoint"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Converts the CSV file contents into JSON format for the API response.",
+        "file_path": "src/server.ts",
+        "id": "csv_to_json_conversion",
+        "name": "csvToJson(csv: string)",
+        "pseudo_code": "function csvToJson(csv):\n    split CSV into lines\n    IF less than 2 lines\n        return empty array\n    ELSE\n        parse header\n        FOR each line\n            map fields to header\n        return array of user objects",
+        "type": "function"
+      }
+    ],
+    "missing_implementations": [
+      "No UI component exists to trigger the fetch or display the CSV export.",
+      "No automated scheduling or trigger for running main() (fetch-users.ts) \u2013 must be run manually.",
+      "No error handling for file write failures or directory creation failures in fetch-users.ts."
+    ]
+  }
+}
