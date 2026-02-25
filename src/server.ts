@@ -1,7 +1,7 @@
 import express from "express";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-
+ 
 const app = express();
 const PORT = 3000;
 const CSV_PATH = join(process.cwd(), "data", "users.csv");
