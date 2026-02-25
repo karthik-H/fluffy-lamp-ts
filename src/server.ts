@@ -43,7 +43,6 @@ function csvToJson(csv: string): Record<string, string>[] {
     headers.forEach((h, j) => {
       row[h] = values[j] ?? "";
     });
-    rows.push(row);
   }
   return rows;
 }
