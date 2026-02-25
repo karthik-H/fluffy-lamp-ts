@@ -1,131 +1,99 @@
 import { parseCsvLine } from '../../src/server';
 
 describe('parseCsvLine', () => {
-  // Test Case 1: Parse simple CSV line without quotes
-  it('Test Case 1: Parse simple CSV line without quotes', () => {
-    const line = 'field1,field2,field3';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field2', 'field3']);
+  // Test Case 1: Parse simple comma separated values
+  it('Test Case 1: Parse simple comma separated values', () => {
+    const line = 'id,name,username,email';
+    expect(parseCsvLine(line)).toEqual(['id', 'name', 'username', 'email']);
   });
 
-  // Test Case 2: Parse CSV line with quoted fields containing commas
-  it('Test Case 2: Parse CSV line with quoted fields containing commas', () => {
-    const line = 'field1,"field, with, commas",field3';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field, with, commas', 'field3']);
+  // Test Case 2: Parse fields with quoted values containing commas
+  it('Test Case 2: Parse fields with quoted values containing commas', () => {
+    const line = '"Doe, John",username,john@example.com';
+    expect(parseCsvLine(line)).toEqual(['Doe, John', 'username', 'john@example.com']);
   });
 
-  // Test Case 3: Parse CSV line with escaped quotes inside quoted field
-  it('Test Case 3: Parse CSV line with escaped quotes inside quoted field', () => {
-    const line = 'field1,"field with ""escaped"" quotes",field3';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field with "escaped" quotes', 'field3']);
+  // Test Case 3: Parse quoted fields with escaped quotes
+  it('Test Case 3: Parse quoted fields with escaped quotes', () => {
+    const line = '"John ""Johnny"" Doe",user1,user1@example.com';
+    expect(parseCsvLine(line)).toEqual(['John "Johnny" Doe', 'user1', 'user1@example.com']);
   });
 
-  // Test Case 4: Parse CSV line with leading and trailing spaces
-  it('Test Case 4: Parse CSV line with leading and trailing spaces', () => {
-    const line = '  field1  ,  "  field2  "  ,field3  ';
-    expect(parseCsvLine(line)).toEqual(['  field1  ', '  field2  ', 'field3  ']);
+  // Test Case 4: Fields with leading and trailing spaces
+  it('Test Case 4: Fields with leading and trailing spaces', () => {
+    const line = '  id  ,  name  ,  email  ';
+    expect(parseCsvLine(line)).toEqual(['  id  ', '  name  ', '  email  ']);
   });
 
-  // Test Case 5: Parse CSV line with empty fields
-  it('Test Case 5: Parse CSV line with empty fields', () => {
-    const line = 'field1,,field3,';
-    expect(parseCsvLine(line)).toEqual(['field1', '', 'field3', '']);
+  // Test Case 5: Handle empty fields
+  it('Test Case 5: Handle empty fields', () => {
+    const line = 'id,,username,,email';
+    expect(parseCsvLine(line)).toEqual(['id', '', 'username', '', 'email']);
   });
 
-  // Test Case 6: Parse CSV line with only quoted fields
-  it('Test Case 6: Parse CSV line with only quoted fields', () => {
-    const line = '"field1","","field3"';
-    expect(parseCsvLine(line)).toEqual(['field1', '', 'field3']);
+  // Test Case 6: Field with only quotes
+  it('Test Case 6: Field with only quotes', () => {
+    const line = '""""';
+    expect(parseCsvLine(line)).toEqual(['"']);
   });
 
-  // Test Case 7: Parse CSV line with unmatched quote
-  it('Test Case 7: Parse CSV line with unmatched quote', () => {
-    const line = 'field1,"unmatched quote,field3';
-    // Accept either error or ["field1", "unmatched quote,field3"]
-    try {
-      const result = parseCsvLine(line);
-      expect(result).toEqual(['field1', 'unmatched quote,field3']);
-    } catch (err) {
-      expect(err).toBeInstanceOf(Error);
-    }
+  // Test Case 7: Line ending with a comma
+  it('Test Case 7: Line ending with a comma', () => {
+    const line = 'id,name,';
+    expect(parseCsvLine(line)).toEqual(['id', 'name', '']);
   });
 
-  // Test Case 8: Parse CSV line with newline inside quoted field
-  it('Test Case 8: Parse CSV line with newline inside quoted field', () => {
-    const line = 'field1,"field with\nnewline",field3';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field with\nnewline', 'field3']);
+  // Test Case 8: Line starting with a comma
+  it('Test Case 8: Line starting with a comma', () => {
+    const line = ',name,email';
+    expect(parseCsvLine(line)).toEqual(['', 'name', 'email']);
   });
 
-  // Test Case 9: Parse CSV line with a single field
-  it('Test Case 9: Parse CSV line with a single field', () => {
-    const line = 'justonefield';
-    expect(parseCsvLine(line)).toEqual(['justonefield']);
+  // Test Case 9: All fields are quoted
+  it('Test Case 9: All fields are quoted', () => {
+    const line = '"id","name","email"';
+    expect(parseCsvLine(line)).toEqual(['id', 'name', 'email']);
   });
 
-  // Test Case 10: Parse empty CSV line
-  it('Test Case 10: Parse empty CSV line', () => {
+  // Test Case 10: Field with a newline within quotes
+  it('Test Case 10: Field with a newline within quotes', () => {
+    const line = '"John\nDoe",email';
+    expect(parseCsvLine(line)).toEqual(['John\nDoe', 'email']);
+  });
+
+  // Test Case 11: Unclosed quoted field
+  it('Test Case 11: Unclosed quoted field', () => {
+    const line = '"John,Doe,email';
+    expect(parseCsvLine(line)).toEqual(['John,Doe,email']);
+  });
+
+  // Test Case 12: Malformed escaped quote
+  it('Test Case 12: Malformed escaped quote', () => {
+    const line = '"John "Doe"",email';
+    expect(parseCsvLine(line)).toEqual(['John "Doe"', 'email']);
+  });
+
+  // Test Case 13: Empty line input
+  it('Test Case 13: Empty line input', () => {
     const line = '';
     expect(parseCsvLine(line)).toEqual(['']);
   });
 
-  // Test Case 11: Parse CSV line with trailing comma
-  it('Test Case 11: Parse CSV line with trailing comma', () => {
-    const line = 'field1,field2,';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field2', '']);
+  // Test Case 14: Line with only commas
+  it('Test Case 14: Line with only commas', () => {
+    const line = ',,,';
+    expect(parseCsvLine(line)).toEqual(['', '', '', '']);
   });
 
-  // Test Case 12: Parse CSV line with leading comma
-  it('Test Case 12: Parse CSV line with leading comma', () => {
-    const line = ',field1,field2';
-    expect(parseCsvLine(line)).toEqual(['', 'field1', 'field2']);
+  // Test Case 15: Mixed quoted and unquoted fields
+  it('Test Case 15: Mixed quoted and unquoted fields', () => {
+    const line = '"Doe, John",username,email';
+    expect(parseCsvLine(line)).toEqual(['Doe, John', 'username', 'email']);
   });
 
-  // Test Case 13: Parse CSV line with multiple sequential commas
-  it('Test Case 13: Parse CSV line with multiple sequential commas', () => {
-    const line = ',,,,';
-    expect(parseCsvLine(line)).toEqual(['', '', '', '', '']);
-  });
-
-  // Test Case 14: Parse CSV line with all quoted empty fields
-  it('Test Case 14: Parse CSV line with all quoted empty fields', () => {
-    const line = '"","",""';
-    expect(parseCsvLine(line)).toEqual(['', '', '']);
-  });
-
-  // Test Case 15: Parse CSV line with field containing both an escaped quote and comma
-  it('Test Case 15: Parse CSV line with field containing both an escaped quote and comma', () => {
-    const line = 'field1,"field, with ""escaped"" quote",field3';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field, with "escaped" quote', 'field3']);
-  });
-
-  // Test Case 16: Parse CSV line containing only a comma
-  it('Test Case 16: Parse CSV line containing only a comma', () => {
-    const line = ',';
-    expect(parseCsvLine(line)).toEqual(['', '']);
-  });
-
-  // Test Case 17: Parse non-string input
-  it('Test Case 17: Parse non-string input', () => {
-    const inputs = [null, 123, {}];
-    for (const input of inputs) {
-      expect(() => parseCsvLine(input as unknown as string)).toThrow();
-    }
-  });
-
-  // Test Case 18: Parse CSV line with field containing commas and newlines in quotes
-  it('Test Case 18: Parse CSV line with field containing commas and newlines in quotes', () => {
-    const line = 'field1,"field, with\nmultiple, lines",field3';
-    expect(parseCsvLine(line)).toEqual(['field1', 'field, with\nmultiple, lines', 'field3']);
-  });
-
-  // Test Case 19: Parse CSV line with fields mixing quoted and unquoted fields
-  it('Test Case 19: Parse CSV line with fields mixing quoted and unquoted fields', () => {
-    const line = 'field1,"quoted,field",unquoted2,"quoted2"';
-    expect(parseCsvLine(line)).toEqual(['field1', 'quoted,field', 'unquoted2', 'quoted2']);
-  });
-
-  // Test Case 20: Parse CSV line with single quote in a field
-  it('Test Case 20: Parse CSV line with single quote in a field', () => {
-    const line = "field1,'single quote',field3";
-    expect(parseCsvLine(line)).toEqual(['field1', "'single quote'", 'field3']);
+  // Test Case 16: Quoted field with both comma and quote
+  it('Test Case 16: Quoted field with both comma and quote', () => {
+    const line = '"Smith, ""The Hammer""",user2';
+    expect(parseCsvLine(line)).toEqual(['Smith, "The Hammer"', 'user2']);
   });
 });

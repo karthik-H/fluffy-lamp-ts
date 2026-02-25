@@ -135,7 +135,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/main_fetch_users_and_save_csv.ts"
     },
     {
       "implementation_id": "user_to_row_csv_conversion",
@@ -474,7 +475,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/user_to_row_csv_conversion.ts"
     },
     {
       "implementation_id": "write_csv_to_file",
@@ -611,7 +613,8 @@
           },
           "type": "negative"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/write_csv_to_file.ts"
     },
     {
       "implementation_id": "csv_to_json_conversion",
@@ -839,7 +842,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/csv_to_json_conversion.ts"
     },
     {
       "implementation_id": "parse_csv_line_for_robust_parsing",
@@ -1159,7 +1163,8 @@
           },
           "type": "positive"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/parse_csv_line_for_robust_parsing.ts"
     }
   ],
   "component": [],
@@ -1425,7 +1430,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/users_api_endpoint.ts"
     }
   ]
 }
