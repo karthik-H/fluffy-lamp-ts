@@ -2,12 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { writeFileSync } from '../../src/fetch-users';
 
-// Mock fs for permission, path, and partial write tests
 jest.mock('fs');
 
 const CSV_PATH = path.join(__dirname, 'test_users.csv');
 const CSV_PATH_INVALID = path.join(__dirname, 'nonexistent_dir', 'test_users.csv');
 const CSV_PATH_NO_PERMISSION = '/root/test_users.csv';
+const CSV_PATH_READONLY = path.join(__dirname, 'readonly_users.csv');
+const CSV_PATH_DIR = __dirname;
+const CSV_PATH_UNWRITABLE_DIR = '/root/unwritable_dir/test_users.csv';
 
 describe('writeFileSync', () => {
   afterEach(() => {
@@ -15,19 +17,14 @@ describe('writeFileSync', () => {
     if (fs.existsSync(CSV_PATH)) {
       fs.unlinkSync(CSV_PATH);
     }
+    if (fs.existsSync(CSV_PATH_READONLY)) {
+      fs.unlinkSync(CSV_PATH_READONLY);
+    }
   });
 
-  test('Write CSV File with Normal User Data', () => {
-    const users = Array.from({ length: 10 }, (_, i) => ({
-      id: i + 1,
-      name: `User${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      phone: `123-456-789${i}`,
-    }));
-    const headers = Object.keys(users[0]).join(',');
-    const rows = users.map(u => Object.values(u).join(',')).join('\n');
-    const csv = `${headers}\n${rows}`;
-
+  // Test Case 1: Write CSV file successfully when valid CSV string is provided
+  test('Write CSV file successfully when valid CSV string is provided', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com\n2,User2,user2@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = csv;
     });
@@ -35,107 +32,44 @@ describe('writeFileSync', () => {
     writeFileSync(csv, CSV_PATH);
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent).toBe(csv);
   });
 
-  test('Overwrite Existing CSV File', () => {
-    const oldContent = 'id,name,email,phone\n1,OldUser,old@example.com,000-000-0000';
+  // Test Case 2: Overwrite existing CSV file
+  test('Overwrite existing CSV file', () => {
+    const oldContent = 'id,name,email\n1,OldUser,old@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = oldContent;
     });
     fs.writeFileSync(CSV_PATH, oldContent, { encoding: 'utf8' });
 
-    const newUsers = [
-      { id: 2, name: 'NewUser', email: 'new@example.com', phone: '111-111-1111' },
-    ];
-    const headers = Object.keys(newUsers[0]).join(',');
-    const rows = newUsers.map(u => Object.values(u).join(',')).join('\n');
-    const csv = `${headers}\n${rows}`;
-
+    const newCsv = 'id,name,email\n2,NewUser,new@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      fs.__mockFileContent = csv;
+      fs.__mockFileContent = newCsv;
     });
 
-    writeFileSync(csv, CSV_PATH);
+    writeFileSync(newCsv, CSV_PATH);
 
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    expect(fs.__mockFileContent).toBe(csv);
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, newCsv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent).toBe(newCsv);
   });
 
-  test('No File Created for Empty User List', () => {
+  // Test Case 3: Write empty CSV string
+  test('Write empty CSV string', () => {
     const csv = '';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('No data to write');
-    });
-
-    expect(() => writeFileSync(csv, CSV_PATH)).toThrow('No data to write');
-    expect(fs.writeFileSync).not.toHaveBeenCalled();
-  });
-
-  test('No File Written on API Failure', () => {
-    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('No CSV string provided');
-    });
-
-    expect(() => writeFileSync(undefined as any, CSV_PATH)).toThrow('No CSV string provided');
-    expect(() => writeFileSync(null as any, CSV_PATH)).toThrow('No CSV string provided');
-    expect(fs.writeFileSync).not.toHaveBeenCalled();
-  });
-
-  test('Write CSV with Missing Fields in Some Users', () => {
-    const users = [
-      { id: 1, name: 'User1', email: 'user1@example.com', phone: '123-456-7890' },
-      { id: 2, name: 'User2', email: 'user2@example.com' }, // missing phone
-    ];
-    const headers = 'id,name,email,phone';
-    const rows = [
-      `${users[0].id},${users[0].name},${users[0].email},${users[0].phone}`,
-      `${users[1].id},${users[1].name},${users[1].email},`,
-    ].join('\n');
-    const csv = `${headers}\n${rows}`;
-
-    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = csv;
     });
 
     writeFileSync(csv, CSV_PATH);
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    expect(fs.__mockFileContent).toBe(csv);
+    expect(fs.__mockFileContent).toBe('');
   });
 
-  test('Write CSV File with Large Number of Users', () => {
-    const users = Array.from({ length: 10000 }, (_, i) => ({
-      id: i + 1,
-      name: `User${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      phone: `123-456-789${i % 10}`,
-    }));
-    const headers = Object.keys(users[0]).join(',');
-    const rows = users.map(u => Object.values(u).join(',')).join('\n');
-    const csv = `${headers}\n${rows}`;
-
-    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      fs.__mockFileContent = csv;
-    });
-
-    writeFileSync(csv, CSV_PATH);
-
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    expect(fs.__mockFileContent.length).toBeGreaterThan(10000);
-  });
-
-  test('Fail to Write CSV File due to No Write Permission', () => {
-    const csv = 'id,name,email,phone\n1,User1,user1@example.com,123-456-7890';
-    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('EACCES: permission denied');
-    });
-
-    expect(() => writeFileSync(csv, CSV_PATH_NO_PERMISSION)).toThrow('EACCES: permission denied');
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_NO_PERMISSION, csv, { encoding: 'utf8' });
-  });
-
-  test('Fail to Write CSV File due to Invalid Path', () => {
-    const csv = 'id,name,email,phone\n1,User1,user1@example.com,123-456-7890';
+  // Test Case 4: Fail to write CSV file to invalid path
+  test('Fail to write CSV file to invalid path', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       throw new Error('ENOENT: no such file or directory');
     });
@@ -144,24 +78,62 @@ describe('writeFileSync', () => {
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_INVALID, csv, { encoding: 'utf8' });
   });
 
-  test('Write CSV File with Special Characters in User Data', () => {
-    const users = [
-      {
-        id: 1,
-        name: 'User, "One"\nNewline',
-        email: 'user1@example.com',
-        phone: '123-456-7890',
-      },
-    ];
+  // Test Case 5: Write large CSV string to file
+  test('Write large CSV string to file', () => {
+    const users = Array.from({ length: 10000 }, (_, i) => ({
+      id: i + 1,
+      name: `User${i + 1}`,
+      email: `user${i + 1}@example.com`,
+    }));
     const headers = Object.keys(users[0]).join(',');
-    const row = [
-      users[0].id,
-      `"${users[0].name.replace(/"/g, '""')}"`,
-      users[0].email,
-      users[0].phone,
-    ].join(',');
-    const csv = `${headers}\n${row}`;
+    const rows = users.map(u => Object.values(u).join(',')).join('\n');
+    const csv = `${headers}\n${rows}`;
 
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      fs.__mockFileContent = csv;
+    });
+
+    writeFileSync(csv, CSV_PATH);
+
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent.length).toBe(csv.length);
+    expect(fs.__mockFileContent.length).toBeGreaterThan(10000);
+  });
+
+  // Test Case 6: Handle null CSV string input
+  test('Handle null CSV string input', () => {
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      throw new Error('No CSV string provided');
+    });
+
+    expect(() => writeFileSync(null as any, CSV_PATH)).toThrow('No CSV string provided');
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  // Test Case 7: Handle undefined CSV string input
+  test('Handle undefined CSV string input', () => {
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      throw new Error('No CSV string provided');
+    });
+
+    expect(() => writeFileSync(undefined as any, CSV_PATH)).toThrow('No CSV string provided');
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
+  });
+
+  // Test Case 8: Fail to write CSV string to read-only file
+  test('Fail to write CSV string to read-only file', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com';
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      throw new Error('EACCES: permission denied');
+    });
+
+    expect(() => writeFileSync(csv, CSV_PATH_READONLY)).toThrow('EACCES: permission denied');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_READONLY, csv, { encoding: 'utf8' });
+  });
+
+  // Test Case 9: Write CSV string containing special characters
+  test('Write CSV string containing special characters', () => {
+    const csv = 'id,name,email\n1,"User, ""One""\nNewline",user1@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = csv;
     });
@@ -172,15 +144,25 @@ describe('writeFileSync', () => {
     expect(fs.__mockFileContent).toContain('"User, ""One""\nNewline"');
   });
 
-  test('Partial Write is Not Allowed', () => {
-    const csv = 'id,name,email,phone\n1,User1,user1@example.com,123-456-7890';
+  // Test Case 10: Fail to write if directory is not writable
+  test('Fail to write if directory is not writable', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('Disk full');
+      throw new Error('EACCES: permission denied');
     });
 
-    expect(() => writeFileSync(csv, CSV_PATH)).toThrow('Disk full');
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    // Simulate cleanup: file should not exist after error
-    expect(fs.existsSync(CSV_PATH)).toBe(false);
+    expect(() => writeFileSync(csv, CSV_PATH_UNWRITABLE_DIR)).toThrow('EACCES: permission denied');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_UNWRITABLE_DIR, csv, { encoding: 'utf8' });
+  });
+
+  // Test Case 11: Fail if CSV_PATH is a directory
+  test('Fail if CSV_PATH is a directory', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com';
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      throw new Error('EISDIR: illegal operation on a directory');
+    });
+
+    expect(() => writeFileSync(csv, CSV_PATH_DIR)).toThrow('EISDIR: illegal operation on a directory');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_DIR, csv, { encoding: 'utf8' });
   });
 });

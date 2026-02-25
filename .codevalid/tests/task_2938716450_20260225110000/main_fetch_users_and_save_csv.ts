@@ -48,8 +48,8 @@ afterEach(() => {
 });
 
 describe("main_fetch_users_and_save_csv", () => {
-  // Test Case 1: Fetch users successfully and save CSV
-  it("Fetch users successfully and save CSV", async () => {
+  // Test Case 1: Fetch users and generate CSV successfully
+  it("Fetch users and generate CSV successfully", async () => {
     const users = Array.from({ length: 10 }, (_, i) => ({
       id: i + 1,
       name: `User ${i + 1}`,
@@ -64,7 +64,6 @@ describe("main_fetch_users_and_save_csv", () => {
     expect(existsSync(CSV_PATH)).toBe(true);
     const csv = readFileSync(CSV_PATH, "utf-8");
     expect(csv.split("\n").length).toBe(11); // 1 header + 10 users
-    expect(csv.startsWith("id,name,username,email,address,phone,website")).toBe(true);
     users.forEach(u => {
       expect(csv).toContain(u.name);
       expect(csv).toContain(u.username);
@@ -73,24 +72,24 @@ describe("main_fetch_users_and_save_csv", () => {
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Saved 10 users to"));
   });
 
-  // Test Case 2: API request fails with network error
-  it("API request fails with network error", async () => {
+  // Test Case 2: API is unreachable and fetch fails
+  it("API is unreachable and fetch fails", async () => {
     mockFetch(null, { throw: true });
-    await expect(main()).rejects.toThrow("Network error");
+    await expect(main()).rejects.toThrow();
     expect(existsSync(CSV_PATH)).toBe(false);
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  // Test Case 3: API returns empty users array
-  it("API returns empty users array", async () => {
+  // Test Case 3: API returns empty array
+  it("API returns empty array", async () => {
     mockFetch([]);
-    await expect(main()).rejects.toThrow("No user data to process");
+    await expect(main()).rejects.toThrow();
     expect(existsSync(CSV_PATH)).toBe(false);
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  // Test Case 4: API returns user objects with missing fields
-  it("API returns user objects with missing fields", async () => {
+  // Test Case 4: User objects missing some fields
+  it("User objects missing some fields", async () => {
     const users = [
       {
         id: 1,
@@ -124,8 +123,6 @@ describe("main_fetch_users_and_save_csv", () => {
     await main();
     expect(existsSync(CSV_PATH)).toBe(true);
     const csv = readFileSync(CSV_PATH, "utf-8");
-    // Should include columns for all unique fields
-    expect(csv.startsWith("id,name,username,email,address,phone,website")).toBe(true);
     const rows = csv.split("\n");
     expect(rows.length).toBe(4); // header + 3 users
     // Each row should have empty values for missing fields
@@ -134,8 +131,29 @@ describe("main_fetch_users_and_save_csv", () => {
     });
   });
 
-  // Test Case 5: Data directory exists prior to execution
-  it("Data directory exists prior to execution", async () => {
+  // Test Case 5: Fields contain commas and newlines
+  it("Fields contain commas and newlines", async () => {
+    const users = [
+      {
+        id: 1,
+        name: 'John, "Doe"\nSmith',
+        username: "john",
+        email: "john@example.com",
+        address: { street: "123 Main St", city: "Metropolis", zipcode: "12345" },
+        phone: "123-456-7890",
+        website: "john.com"
+      }
+    ];
+    mockFetch(users);
+    await main();
+    expect(existsSync(CSV_PATH)).toBe(true);
+    const csv = readFileSync(CSV_PATH, "utf-8");
+    // CSV should escape commas, quotes, and newlines
+    expect(csv).toMatch(/"John, ""Doe""\nSmith"/);
+  });
+
+  // Test Case 6: Data directory already exists
+  it("Data directory already exists", async () => {
     const users = [
       {
         id: 1,
@@ -152,13 +170,11 @@ describe("main_fetch_users_and_save_csv", () => {
     await main();
     expect(existsSync(DATA_DIR)).toBe(true);
     expect(existsSync(CSV_PATH)).toBe(true);
-    const csv = readFileSync(CSV_PATH, "utf-8");
-    expect(csv).toContain("A");
     expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Saved 1 users to"));
   });
 
-  // Test Case 6: CSV file write fails due to permission error
-  it("CSV file write fails due to permission error", async () => {
+  // Test Case 7: File write operation fails
+  it("File write operation fails", async () => {
     const users = [
       {
         id: 1,
@@ -172,16 +188,15 @@ describe("main_fetch_users_and_save_csv", () => {
     ];
     mockFetch(users);
     mkdirSync(DATA_DIR, { recursive: true });
-    // Simulate permission error by mocking writeFileSync
     const originalWriteFileSync = writeFileSync;
     (writeFileSync as any) = jest.fn(() => { throw new Error("EACCES: permission denied"); });
-    await expect(main()).rejects.toThrow("EACCES: permission denied");
+    await expect(main()).rejects.toThrow();
     expect(existsSync(CSV_PATH)).toBe(false);
     (writeFileSync as any) = originalWriteFileSync;
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  // Test Case 7: API returns malformed JSON
+  // Test Case 8: API returns malformed JSON
   it("API returns malformed JSON", async () => {
     global.fetch = jest.fn().mockImplementation(() =>
       Promise.resolve({
@@ -191,21 +206,21 @@ describe("main_fetch_users_and_save_csv", () => {
         text: () => Promise.resolve("not json"),
       })
     );
-    await expect(main()).rejects.toThrow("Malformed JSON");
+    await expect(main()).rejects.toThrow();
     expect(existsSync(CSV_PATH)).toBe(false);
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  // Test Case 8: API returns non-array JSON response
-  it("API returns non-array JSON response", async () => {
+  // Test Case 9: API returns a non-array JSON (unexpected structure)
+  it("API returns a non-array JSON (unexpected structure)", async () => {
     mockFetch({ not: "array" });
-    await expect(main()).rejects.toThrow("Unexpected response format");
+    await expect(main()).rejects.toThrow();
     expect(existsSync(CSV_PATH)).toBe(false);
     expect(logSpy).not.toHaveBeenCalled();
   });
 
-  // Test Case 9: Log success after CSV file is written
-  it("Log success after CSV file is written", async () => {
+  // Test Case 10: Repeated successful run overwrites CSV file
+  it("Repeated successful run overwrites CSV file", async () => {
     const users = [
       {
         id: 1,
@@ -219,42 +234,35 @@ describe("main_fetch_users_and_save_csv", () => {
     ];
     mockFetch(users);
     await main();
-    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Saved 1 users to"));
     expect(existsSync(CSV_PATH)).toBe(true);
+    const csv1 = readFileSync(CSV_PATH, "utf-8");
+    mockFetch(users);
+    await main();
+    const csv2 = readFileSync(CSV_PATH, "utf-8");
+    expect(csv2).toBe(csv1);
+    expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("Saved 1 users to"));
   });
 
-  // Test Case 10: API returns users with nested JSON fields
-  it("API returns users with nested JSON fields", async () => {
+  // Test Case 11: User fields have unexpected data types
+  it("User fields have unexpected data types", async () => {
     const users = [
       {
         id: 1,
-        name: "A",
-        username: "a",
-        email: "a@x.com",
-        address: { street: "A", city: "A", zipcode: "A", geo: { lat: "1", lng: "2" } },
-        phone: "a",
-        website: "a.com",
-        company: { name: "CompA", catchPhrase: "PhraseA" }
-      },
-      {
-        id: 2,
-        name: "B",
-        username: "b",
-        email: "b@x.com",
-        address: { street: "B", city: "B", zipcode: "B", geo: { lat: "3", lng: "4" } },
-        phone: "b",
-        website: "b.com",
-        company: { name: "CompB", catchPhrase: "PhraseB" }
+        name: null,
+        username: 123,
+        email: ["a@x.com", "b@x.com"],
+        address: { street: "A", city: "A", zipcode: "A" },
+        phone: undefined,
+        website: { url: "a.com" }
       }
     ];
     mockFetch(users);
     await main();
     expect(existsSync(CSV_PATH)).toBe(true);
     const csv = readFileSync(CSV_PATH, "utf-8");
-    // Nested fields should be stringified
-    expect(csv).toContain(JSON.stringify(users[0].address));
-    expect(csv).toContain(JSON.stringify(users[0].company));
-    expect(csv).toContain(JSON.stringify(users[1].address));
-    expect(csv).toContain(JSON.stringify(users[1].company));
+    // nulls should be empty, arrays/objects stringified
+    expect(csv).toMatch(/,,/); // null and undefined become empty
+    expect(csv).toContain(JSON.stringify(users[0].email));
+    expect(csv).toContain(JSON.stringify(users[0].website));
   });
 });

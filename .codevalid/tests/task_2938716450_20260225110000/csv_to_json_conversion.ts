@@ -10,119 +10,157 @@ function safeCsvToJson(input: any): any[] {
 }
 
 describe('csvToJson(csv)', () => {
-  test('Converts standard CSV to JSON', () => {
-    const csv = 'id,name,username,email\n1,Leanne Graham,Bret,Sincere@april.biz\n2,Ervin Howell,Antonette,Shanna@melissa.tv';
+  test('Minimal valid CSV input', () => {
+    const csv = 'id,name,email\n1,John Doe,john@example.com';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: 'Sincere@april.biz', id: '1', name: 'Leanne Graham', username: 'Bret' },
-      { email: 'Shanna@melissa.tv', id: '2', name: 'Ervin Howell', username: 'Antonette' }
+      { email: 'john@example.com', id: '1', name: 'John Doe' }
     ]);
   });
 
-  test('CSV with header only returns empty array', () => {
-    const csv = 'id,name,username,email';
+  test('CSV with multiple rows', () => {
+    const csv = 'id,name,email\n1,John Doe,john@example.com\n2,Jane Smith,jane@example.com';
+    const result = csvToJson(csv);
+    expect(result).toEqual([
+      { email: 'john@example.com', id: '1', name: 'John Doe' },
+      { email: 'jane@example.com', id: '2', name: 'Jane Smith' }
+    ]);
+  });
+
+  test('CSV with header only', () => {
+    const csv = 'id,name,email';
     const result = csvToJson(csv);
     expect(result).toEqual([]);
   });
 
-  test('Empty CSV string returns empty array', () => {
+  test('Empty CSV string', () => {
     const csv = '';
     const result = csvToJson(csv);
     expect(result).toEqual([]);
   });
 
-  test('CSV with only whitespace returns empty array', () => {
-    const csv = '    \n   ';
+  test('CSV with only newline', () => {
+    const csv = '\n';
     const result = csvToJson(csv);
     expect(result).toEqual([]);
   });
 
-  test('CSV fields with internal commas and quotes are parsed correctly', () => {
-    const csv = 'id,name,username,email\n3,"Smith, John","johnny,smith","john,smith@email.com"';
+  test('CSV with trailing newlines', () => {
+    const csv = 'id,name\n1,Alice\n2,Bob\n\n';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: 'john,smith@email.com', id: '3', name: 'Smith, John', username: 'johnny,smith' }
+      { id: '1', name: 'Alice' },
+      { id: '2', name: 'Bob' }
     ]);
   });
 
-  test('CSV with missing fields in a row', () => {
-    const csv = 'id,name,username,email\n4,Jane Doe,janedoe';
+  test('Row missing a field', () => {
+    const csv = 'id,name,email\n1,John Doe';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: '', id: '4', name: 'Jane Doe', username: 'janedoe' }
+      { email: '', id: '1', name: 'John Doe' }
     ]);
   });
 
-  test('CSV with extra fields in a row', () => {
-    const csv = 'id,name,username\n5,Sam Smith,samsmith,extra_field';
+  test('Row with extra field', () => {
+    const csv = 'id,name\n1,John Doe,extra_field';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { id: '5', name: 'Sam Smith', username: 'samsmith' }
+      { id: '1', name: 'John Doe' }
     ]);
   });
 
-  test('Passing null as CSV input', () => {
-    // Depending on implementation, may throw TypeError or return []
-    let threw = false;
-    let result: any[] = [];
-    try {
-      result = csvToJson(null as any);
-    } catch (e) {
-      threw = true;
-    }
-    expect(threw || Array.isArray(result) && result.length === 0).toBe(true);
+  test('CSV with quoted fields containing commas', () => {
+    const csv = 'id,name,notes\n1,"John, Jr.","Likes apples, oranges"';
+    const result = csvToJson(csv);
+    expect(result).toEqual([
+      { id: '1', name: 'John, Jr.', notes: 'Likes apples, oranges' }
+    ]);
+  });
+
+  test('CSV with quoted fields containing newlines', () => {
+    const csv = 'id,notes\n1,"First line\nSecond line"\n2,"Another\nmulti-line"';
+    const result = csvToJson(csv);
+    expect(result).toEqual([
+      { id: '1', notes: 'First line\nSecond line' },
+      { id: '2', notes: 'Another\nmulti-line' }
+    ]);
+  });
+
+  test('CSV with extra whitespace around headers and values', () => {
+    const csv = ' id , name \n 1 , Alice ';
+    const result = csvToJson(csv);
+    expect(result).toEqual([
+      { id: '1', name: 'Alice' }
+    ]);
+  });
+
+  test('CSV with no header and only data', () => {
+    const csv = '1,John Doe,john@example.com';
+    const result = csvToJson(csv);
+    expect(result).toEqual([]);
+  });
+
+  test('CSV with headers containing special characters', () => {
+    const csv = 'user-id,user_name,email2\n1,alice,alice@mail.com';
+    const result = csvToJson(csv);
+    expect(result).toEqual([
+      { 'user-id': '1', user_name: 'alice', email2: 'alice@mail.com' }
+    ]);
   });
 
   test('CSV with blank lines between rows', () => {
-    const csv = 'id,name,username,email\n\n6,Ann,ann99,ann@email.com\n\n7,Bob,bobby,bob@email.com';
+    const csv = 'id,name\n1,Alice\n\n2,Bob';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: 'ann@email.com', id: '6', name: 'Ann', username: 'ann99' },
-      { email: 'bob@email.com', id: '7', name: 'Bob', username: 'bobby' }
+      { id: '1', name: 'Alice' },
+      { id: '2', name: 'Bob' }
     ]);
   });
 
-  test('CSV field contains newline within quoted value', () => {
-    const csv = 'id,name,username,email\n8,"Alice\nWonder","alicew","alice@wonder.com"';
+  test('CSV with all fields empty', () => {
+    const csv = 'id,name,email\n,,\n,,\n';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: 'alice@wonder.com', id: '8', name: 'Alice\nWonder', username: 'alicew' }
+      { id: '', name: '', email: '' },
+      { id: '', name: '', email: '' }
     ]);
   });
 
-  test('CSV with duplicate header fields', () => {
-    const csv = 'id,name,name,email\n9,John,Johnny,johnny@email.com';
+  test('CSV with escaped quote in field', () => {
+    const csv = 'id,comment\n1,"He said ""hello"" to me"';
     const result = csvToJson(csv);
-    // Only last duplicate header should be used for 'name'
     expect(result).toEqual([
-      { email: 'johnny@email.com', id: '9', name: 'Johnny' }
+      { id: '1', comment: 'He said "hello" to me' }
     ]);
   });
 
-  test('Non-string input (number) returns error or empty array', () => {
-    let threw = false;
-    let result: any[] = [];
-    try {
-      result = csvToJson(12345 as any);
-    } catch (e) {
-      threw = true;
-    }
-    expect(threw || Array.isArray(result) && result.length === 0).toBe(true);
+  test('Malformed CSV with unclosed quoted field', () => {
+    const csv = 'id,comment\n1,"Unclosed quote';
+    const result = safeCsvToJson(csv);
+    expect(result).toEqual([]);
   });
 
-  test('CSV header with leading/trailing spaces is trimmed', () => {
-    const csv = ' id , name , username , email \n10, Spacey,spacey,spacey@email.com';
+  test('Non-string input', () => {
+    const csv: any = null;
+    const result = safeCsvToJson(csv);
+    expect(result).toEqual([]);
+  });
+
+  test('CSV with Unicode characters', () => {
+    const csv = 'id,name\n1,李雷\n2,Мария';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: 'spacey@email.com', id: '10', name: 'Spacey', username: 'spacey' }
+      { id: '1', name: '李雷' },
+      { id: '2', name: 'Мария' }
     ]);
   });
 
-  test('CSV with trailing newlines', () => {
-    const csv = 'id,name,username,email\n11,Last,lastname,last@email.com\n\n\n';
+  test('CSV with headers that include spaces', () => {
+    const csv = 'user id,full name\n1,John Smith';
     const result = csvToJson(csv);
     expect(result).toEqual([
-      { email: 'last@email.com', id: '11', name: 'Last', username: 'lastname' }
+      { 'user id': '1', 'full name': 'John Smith' }
     ]);
   });
 });
