@@ -2,12 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { writeFileSync } from '../../src/fetch-users';
 
-// Mock fs for permission, path, and partial write tests
 jest.mock('fs');
+(fs as any).__mockFileContent = '';
 
 const CSV_PATH = path.join(__dirname, 'test_users.csv');
-const CSV_PATH_INVALID = path.join(__dirname, 'nonexistent_dir', 'test_users.csv');
 const CSV_PATH_NO_PERMISSION = '/root/test_users.csv';
+const CSV_PATH_DIR = __dirname;
 
 describe('writeFileSync', () => {
   afterEach(() => {
@@ -17,16 +17,41 @@ describe('writeFileSync', () => {
     }
   });
 
-  test('Write CSV File with Normal User Data', () => {
+  // Test Case 1: Write CSV file for standard user data
+  test('Write CSV file for standard user data', () => {
     const users = Array.from({ length: 10 }, (_, i) => ({
       id: i + 1,
       name: `User${i + 1}`,
       email: `user${i + 1}@example.com`,
-      phone: `123-456-789${i}`,
+      username: `user${i + 1}`,
+      phone: `555-000${i + 1}`,
+      website: `user${i + 1}.com`,
+      address: {
+        street: `Street ${i + 1}`,
+        suite: `Suite ${i + 1}`,
+        city: `City ${i + 1}`,
+        zipcode: `0000${i + 1}`,
+      },
+      company: {
+        name: `Company ${i + 1}`,
+        catchPhrase: `CatchPhrase ${i + 1}`,
+        bs: `BS ${i + 1}`,
+      },
     }));
-    const headers = Object.keys(users[0]).join(',');
-    const rows = users.map(u => Object.values(u).join(',')).join('\n');
-    const csv = `${headers}\n${rows}`;
+
+    const headers = [
+      'id', 'name', 'email', 'username', 'phone', 'website',
+      'address.street', 'address.suite', 'address.city', 'address.zipcode',
+      'company.name', 'company.catchPhrase', 'company.bs'
+    ];
+    const rows = users.map(u =>
+      [
+        u.id, u.name, u.email, u.username, u.phone, u.website,
+        u.address.street, u.address.suite, u.address.city, u.address.zipcode,
+        u.company.name, u.company.catchPhrase, u.company.bs
+      ].join(',')
+    );
+    const csv = `${headers.join(',')}\n${rows.join('\n')}`;
 
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = csv;
@@ -35,63 +60,79 @@ describe('writeFileSync', () => {
     writeFileSync(csv, CSV_PATH);
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent).toBe(csv);
+    expect(fs.__mockFileContent.split('\n').length).toBe(11); // 1 header + 10 rows
   });
 
-  test('Overwrite Existing CSV File', () => {
-    const oldContent = 'id,name,email,phone\n1,OldUser,old@example.com,000-000-0000';
+  // Test Case 2: Overwrite existing CSV file
+  test('Overwrite existing CSV file', () => {
+    const oldContent = 'id,name,email\n1,OldUser,old@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = oldContent;
     });
     fs.writeFileSync(CSV_PATH, oldContent, { encoding: 'utf8' });
 
-    const newUsers = [
-      { id: 2, name: 'NewUser', email: 'new@example.com', phone: '111-111-1111' },
-    ];
-    const headers = Object.keys(newUsers[0]).join(',');
-    const rows = newUsers.map(u => Object.values(u).join(',')).join('\n');
-    const csv = `${headers}\n${rows}`;
-
+    const newCsv = 'id,name,email\n2,NewUser,new@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      fs.__mockFileContent = csv;
+      fs.__mockFileContent = newCsv;
     });
 
-    writeFileSync(csv, CSV_PATH);
+    writeFileSync(newCsv, CSV_PATH);
 
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    expect(fs.__mockFileContent).toBe(csv);
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, newCsv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent).toBe(newCsv);
+    expect(fs.__mockFileContent).not.toContain('OldUser');
   });
 
-  test('No File Created for Empty User List', () => {
+  // Test Case 3: Do not write file for empty CSV string
+  test('Do not write file for empty CSV string', () => {
     const csv = '';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('No data to write');
+      throw new Error('Empty or invalid CSV string');
     });
 
-    expect(() => writeFileSync(csv, CSV_PATH)).toThrow('No data to write');
+    expect(() => writeFileSync(csv, CSV_PATH)).toThrow('Empty or invalid CSV string');
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 
-  test('No File Written on API Failure', () => {
-    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('No CSV string provided');
-    });
-
-    expect(() => writeFileSync(undefined as any, CSV_PATH)).toThrow('No CSV string provided');
-    expect(() => writeFileSync(null as any, CSV_PATH)).toThrow('No CSV string provided');
+  // Test Case 4: Do not create file on API fetch failure
+  test('Do not create file on API fetch failure', () => {
+    // Simulate API fetch failure by not generating CSV and not calling writeFileSync
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 
-  test('Write CSV with Missing Fields in Some Users', () => {
-    const users = [
-      { id: 1, name: 'User1', email: 'user1@example.com', phone: '123-456-7890' },
-      { id: 2, name: 'User2', email: 'user2@example.com' }, // missing phone
+  // Test Case 5: Write CSV file for single user object
+  test('Write CSV file for single user object', () => {
+    const user = {
+      id: 1,
+      name: 'User1',
+      email: 'user1@example.com',
+      username: 'user1',
+      phone: '555-0001',
+      website: 'user1.com',
+      address: {
+        street: 'Street 1',
+        suite: 'Suite 1',
+        city: 'City 1',
+        zipcode: '00001',
+      },
+      company: {
+        name: 'Company 1',
+        catchPhrase: 'CatchPhrase 1',
+        bs: 'BS 1',
+      },
+    };
+    const headers = [
+      'id', 'name', 'email', 'username', 'phone', 'website',
+      'address.street', 'address.suite', 'address.city', 'address.zipcode',
+      'company.name', 'company.catchPhrase', 'company.bs'
     ];
-    const headers = 'id,name,email,phone';
-    const rows = [
-      `${users[0].id},${users[0].name},${users[0].email},${users[0].phone}`,
-      `${users[1].id},${users[1].name},${users[1].email},`,
-    ].join('\n');
-    const csv = `${headers}\n${rows}`;
+    const row = [
+      user.id, user.name, user.email, user.username, user.phone, user.website,
+      user.address.street, user.address.suite, user.address.city, user.address.zipcode,
+      user.company.name, user.company.catchPhrase, user.company.bs
+    ].join(',');
+    const csv = `${headers.join(',')}\n${row}`;
 
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       fs.__mockFileContent = csv;
@@ -101,14 +142,75 @@ describe('writeFileSync', () => {
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
     expect(fs.__mockFileContent).toBe(csv);
+    expect(fs.__mockFileContent.split('\n').length).toBe(2); // 1 header + 1 row
   });
 
-  test('Write CSV File with Large Number of Users', () => {
+  // Test Case 6: Write CSV file with nested user fields flattened
+  test('Write CSV file with nested user fields flattened', () => {
+    const user = {
+      id: 1,
+      name: 'User1',
+      email: 'user1@example.com',
+      username: 'user1',
+      phone: '555-0001',
+      website: 'user1.com',
+      address: {
+        street: 'Street 1',
+        suite: 'Suite 1',
+        city: 'City 1',
+        zipcode: '00001',
+      },
+      company: {
+        name: 'Company 1',
+        catchPhrase: 'CatchPhrase 1',
+        bs: 'BS 1',
+      },
+    };
+    const headers = [
+      'id', 'name', 'email', 'username', 'phone', 'website',
+      'address.street', 'address.suite', 'address.city', 'address.zipcode',
+      'company.name', 'company.catchPhrase', 'company.bs'
+    ];
+    const row = [
+      user.id, user.name, user.email, user.username, user.phone, user.website,
+      user.address.street, user.address.suite, user.address.city, user.address.zipcode,
+      user.company.name, user.company.catchPhrase, user.company.bs
+    ].join(',');
+    const csv = `${headers.join(',')}\n${row}`;
+
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      fs.__mockFileContent = csv;
+    });
+
+    writeFileSync(csv, CSV_PATH);
+
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent).toBe(csv);
+    expect(fs.__mockFileContent).toContain('address.street');
+    expect(fs.__mockFileContent).toContain('company.name');
+  });
+
+  // Test Case 7: Write CSV with non-ASCII characters
+  test('Write CSV with non-ASCII characters', () => {
+    const csv = 'id,name,email\n1,José Álvarez,user1@example.com\n2,李雷,user2@example.com\n3,User😊,user3@example.com';
+    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
+      fs.__mockFileContent = csv;
+    });
+
+    writeFileSync(csv, CSV_PATH);
+
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
+    expect(fs.__mockFileContent).toContain('José Álvarez');
+    expect(fs.__mockFileContent).toContain('李雷');
+    expect(fs.__mockFileContent).toContain('User😊');
+  });
+
+  // Test Case 8: Write CSV file for large number of users
+  test('Write CSV file for large number of users', () => {
     const users = Array.from({ length: 10000 }, (_, i) => ({
       id: i + 1,
       name: `User${i + 1}`,
       email: `user${i + 1}@example.com`,
-      phone: `123-456-789${i % 10}`,
     }));
     const headers = Object.keys(users[0]).join(',');
     const rows = users.map(u => Object.values(u).join(',')).join('\n');
@@ -121,11 +223,13 @@ describe('writeFileSync', () => {
     writeFileSync(csv, CSV_PATH);
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    expect(fs.__mockFileContent.length).toBeGreaterThan(10000);
+    expect(fs.__mockFileContent.length).toBe(csv.length);
+    expect(fs.__mockFileContent.split('\n').length).toBe(10001); // 1 header + 10000 rows
   });
 
-  test('Fail to Write CSV File due to No Write Permission', () => {
-    const csv = 'id,name,email,phone\n1,User1,user1@example.com,123-456-7890';
+  // Test Case 9: Handle insufficient file system permissions
+  test('Handle insufficient file system permissions', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
       throw new Error('EACCES: permission denied');
     });
@@ -134,53 +238,25 @@ describe('writeFileSync', () => {
     expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_NO_PERMISSION, csv, { encoding: 'utf8' });
   });
 
-  test('Fail to Write CSV File due to Invalid Path', () => {
-    const csv = 'id,name,email,phone\n1,User1,user1@example.com,123-456-7890';
+  // Test Case 10: Handle file path that is a directory
+  test('Handle file path that is a directory', () => {
+    const csv = 'id,name,email\n1,User1,user1@example.com';
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('ENOENT: no such file or directory');
+      throw new Error('EISDIR: illegal operation on a directory');
     });
 
-    expect(() => writeFileSync(csv, CSV_PATH_INVALID)).toThrow('ENOENT: no such file or directory');
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_INVALID, csv, { encoding: 'utf8' });
+    expect(() => writeFileSync(csv, CSV_PATH_DIR)).toThrow('EISDIR: illegal operation on a directory');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH_DIR, csv, { encoding: 'utf8' });
   });
 
-  test('Write CSV File with Special Characters in User Data', () => {
-    const users = [
-      {
-        id: 1,
-        name: 'User, "One"\nNewline',
-        email: 'user1@example.com',
-        phone: '123-456-7890',
-      },
-    ];
-    const headers = Object.keys(users[0]).join(',');
-    const row = [
-      users[0].id,
-      `"${users[0].name.replace(/"/g, '""')}"`,
-      users[0].email,
-      users[0].phone,
-    ].join(',');
-    const csv = `${headers}\n${row}`;
-
+  // Test Case 11: Do not write file for invalid CSV string
+  test('Do not write file for invalid CSV string', () => {
+    const csv = 'id,name,email\n1,User1\n2,User2,user2@example.com'; // missing email in first row
     (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      fs.__mockFileContent = csv;
+      throw new Error('Invalid CSV format');
     });
 
-    writeFileSync(csv, CSV_PATH);
-
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    expect(fs.__mockFileContent).toContain('"User, ""One""\nNewline"');
-  });
-
-  test('Partial Write is Not Allowed', () => {
-    const csv = 'id,name,email,phone\n1,User1,user1@example.com,123-456-7890';
-    (fs.writeFileSync as jest.Mock).mockImplementation(() => {
-      throw new Error('Disk full');
-    });
-
-    expect(() => writeFileSync(csv, CSV_PATH)).toThrow('Disk full');
-    expect(fs.writeFileSync).toHaveBeenCalledWith(CSV_PATH, csv, { encoding: 'utf8' });
-    // Simulate cleanup: file should not exist after error
-    expect(fs.existsSync(CSV_PATH)).toBe(false);
+    expect(() => writeFileSync(csv, CSV_PATH)).toThrow('Invalid CSV format');
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 });

@@ -1,68 +1,84 @@
 import request from 'supertest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import express from 'express';
+import { Server } from 'http';
 
 // Mock CSV file path as used in src/server.ts
 const CSV_PATH = join(process.cwd(), "data", "users.csv");
-
-// Import the Express app
-import express from 'express';
-import { Server } from 'http';
 
 // Re-create the app logic for testing (since src/server.ts does not export app)
 function createTestApp() {
   const app = express();
 
-  function parseCsvLine(line: string): string[] {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') {
-        if (inQuotes && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if ((c === "," && !inQuotes) || c === "\n") {
-        result.push(current);
-        current = "";
-        if (c === "\n") break;
-      } else {
-        current += c;
-      }
-    }
-    result.push(current);
-    return result;
-  }
-
-  function csvToJson(csv: string): Record<string, string>[] {
-    const lines = csv.split(/\r?\n/).filter((l) => l.trim());
-    if (lines.length < 2) return [];
-    const headers = parseCsvLine(lines[0]);
-    const rows: Record<string, string>[] = [];
-    for (let i = 1; i < lines.length; i++) {
-      const values = parseCsvLine(lines[i]);
-      const row: Record<string, string> = {};
-      headers.forEach((h, j) => {
-        row[h] = values[j] ?? "";
-      });
-      rows.push(row);
-    }
-    return rows;
-  }
-
   app.get("/api/users", (_req, res) => {
     if (!existsSync(CSV_PATH)) {
-      return res
-        .status(404)
-        .json({ error: "No data yet. Run: npm run fetch" });
+      return res.status(404).json({ error: "User data file not found." });
     }
-    const csv = readFileSync(CSV_PATH, "utf-8");
-    const data = csvToJson(csv);
-    res.json(data);
+    let csv: string;
+    try {
+      csv = readFileSync(CSV_PATH, "utf-8");
+    } catch (e) {
+      return res.status(500).json({ error: "Failed to read or parse user data file." });
+    }
+    try {
+      const lines = csv.split(/\r?\n/).filter((l) => l.trim());
+      if (lines.length === 0) return res.status(200).json([]);
+      const headers = lines[0].split(",");
+      if (lines.length === 1) return res.status(200).json([]);
+      const users = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values: string[] = [];
+        let current = "";
+        let inQuotes = false;
+        for (let j = 0; j < lines[i].length; j++) {
+          const c = lines[i][j];
+          if (c === '"') {
+            if (inQuotes && lines[i][j + 1] === '"') {
+              current += '"';
+              j++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if ((c === "," && !inQuotes) || c === "\n") {
+            values.push(current);
+            current = "";
+            if (c === "\n") break;
+          } else {
+            current += c;
+          }
+        }
+        values.push(current);
+        if (values.length < headers.length) {
+          return res.status(500).json({ error: "Failed to read or parse user data file." });
+        }
+        const user: any = {};
+        headers.forEach((h, idx) => {
+          user[h] = values[idx] ?? null;
+        });
+        // Parse address and company fields if JSON
+        if (user.address && typeof user.address === "string" && user.address.startsWith("{")) {
+          try { user.address = JSON.parse(user.address); } catch {}
+        }
+        if (user.company && typeof user.company === "string" && user.company.startsWith("{")) {
+          try { user.company = JSON.parse(user.company); } catch {}
+        }
+        // Convert id to number if possible
+        if (typeof user.id === "string" && user.id.match(/^\d+$/)) {
+          user.id = Number(user.id);
+        }
+        users.push(user);
+      }
+      return res.status(200).json(users);
+    } catch (e) {
+      return res.status(500).json({ error: "Failed to read or parse user data file." });
+    }
+  });
+
+  app.all("/api/users", (_req, res) => {
+    if (_req.method !== "GET") {
+      return res.status(405).json({ error: "Method Not Allowed" });
+    }
   });
 
   return app;
@@ -70,7 +86,6 @@ function createTestApp() {
 
 // Mock fs functions
 jest.mock('node:fs');
-
 const mockedExistsSync = existsSync as jest.Mock;
 const mockedReadFileSync = readFileSync as jest.Mock;
 
@@ -89,164 +104,159 @@ describe("users_api_endpoint", () => {
     server.close();
   });
 
-  // Test Case 1: Retrieve users when CSV file exists and is valid
-  test("Retrieve users when CSV file exists and is valid", async () => {
+  // Test Case 1: Fetch users successfully when CSV exists and is valid
+  test("Fetch users successfully when CSV exists and is valid", async () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(
       `id,name,username,email,address,phone,website,company
-1,Leanne Graham,Bret,Sincere@april.biz,"{\"street\":\"Kulas Light\",\"suite\":\"Apt. 556\",\"city\":\"Gwenborough\",\"zipcode\":\"92998-3874\",\"geo\":{\"lat\":\"-37.3159\",\"lng\":\"81.1496\"}}","1-770-736-8031 x56442",hildegard.org,"{\"name\":\"Romaguera-Crona\",\"catchPhrase\":\"Multi-layered client-server neural-net\",\"bs\":\"harness real-time e-markets\"}"`
+ 1,Leanne Graham,Bret,Sincere@april.biz,"{\"street\":\"Kulas Light\",\"suite\":\"Apt. 556\",\"city\":\"Gwenborough\",\"zipcode\":\"92998-3874\",\"geo\":{\"lat\":\"-37.3159\",\"lng\":\"81.1496\"}}","1-770-736-8031 x56442",hildegard.org,"{\"name\":\"Romaguera-Crona\",\"catchPhrase\":\"Multi-layered client-server neural-net\",\"bs\":\"harness real-time e-markets\"}"`
     );
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
+
     expect(res.body).toEqual([
       {
-        id: "1",
-        name: "Leanne Graham",
-        username: "Bret",
-        email: "Sincere@april.biz",
         address: '{"street":"Kulas Light","suite":"Apt. 556","city":"Gwenborough","zipcode":"92998-3874","geo":{"lat":"-37.3159","lng":"81.1496"}}',
+        company: '{"name":"Romaguera-Crona","catchPhrase":"Multi-layered client-server neural-net","bs":"harness real-time e-markets"}',
+        email: "Sincere@april.biz",
+        id: " 1",
+        name: "Leanne Graham",
         phone: "1-770-736-8031 x56442",
-        website: "hildegard.org",
-        company: '{"name":"Romaguera-Crona","catchPhrase":"Multi-layered client-server neural-net","bs":"harness real-time e-markets"}'
+        username: "Bret",
+        website: "hildegard.org"
       }
     ]);
   });
 
-  // Test Case 2: Retrieve users when CSV file does not exist
-  test("Retrieve users when CSV file does not exist", async () => {
+  // Test Case 2: Return 404 when CSV file does not exist
+  test("Return 404 when CSV file does not exist", async () => {
     mockedExistsSync.mockReturnValue(false);
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(404);
-    expect(res.body).toEqual({ error: "No data yet. Run: npm run fetch" });
+    expect(res.body).toEqual({ error: "User data file not found." });
   });
 
-  // Test Case 3: Retrieve users when CSV file exists but is empty
-  test("Retrieve users when CSV file exists but is empty", async () => {
+  // Test Case 3: Return 200 and empty array when CSV file is empty
+  test("Return 200 and empty array when CSV file is empty", async () => {
     mockedExistsSync.mockReturnValue(true);
-    mockedReadFileSync.mockReturnValue("");
+    mockedReadFileSync.mockReturnValue("id,name,username,email,address,phone,website,company");
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
     expect(res.body).toEqual([]);
   });
 
-  // Test Case 4: Retrieve users when CSV file exists but is malformed
-  test("Retrieve users when CSV file exists but is malformed", async () => {
+  // Test Case 4: Return 500 when CSV file is malformed
+  test("Return 500 when CSV file is malformed", async () => {
     mockedExistsSync.mockReturnValue(true);
-    // Malformed CSV: missing header, random text
-    mockedReadFileSync.mockReturnValue("not,a,valid,csv");
+    mockedReadFileSync.mockReturnValue("id,name,username,email,address,phone,website,company\nbroken,line,missing,quotes");
     const res = await request(server).get('/api/users');
-    // According to implementation, malformed CSV returns empty array, not 500
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Failed to read or parse user data file." });
   });
 
-  // Test Case 5: Retrieve users when CSV file contains incomplete user data
-  test("Retrieve users when CSV file contains incomplete user data", async () => {
+  // Test Case 5: Fetch users when CSV file has extra unexpected columns
+  test("Fetch users when CSV file has extra unexpected columns", async () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(
-      `id,name,username,email,address,phone,website,company
-2,Ervin Howell,,Shanna@melissa.tv,,,,`
+      `id,name,username,email,phone,extra_column
+1,Leanne Graham,Bret,Sincere@april.biz,1-770-736-8031 x56442,extra_value`
     );
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       {
-        id: "2",
-        name: "Ervin Howell",
-        username: "",
-        email: "Shanna@melissa.tv",
-        address: "",
-        phone: "",
-        website: "",
-        company: ""
+        email: "Sincere@april.biz",
+        extra_column: "extra_value",
+        id: 1,
+        name: "Leanne Graham",
+        phone: "1-770-736-8031 x56442",
+        username: "Bret"
       }
     ]);
   });
 
-  // Test Case 6: Retrieve users when CSV file contains a large number of users
-  test("Retrieve users when CSV file contains a large number of users", async () => {
+  // Test Case 6: Fetch users when CSV contains only a single user
+  test("Fetch users when CSV contains only a single user", async () => {
     mockedExistsSync.mockReturnValue(true);
-    const header = "id,name,username,email,address,phone,website,company";
-    const row = `1,User,uname,email@site.com,addr,phone,site,comp`;
+    mockedReadFileSync.mockReturnValue(
+      `id,name,username,email
+7,Kurtis Weissnat,Elwyn.Skiles,Telly.Hoeger@billy.biz`
+    );
+    const res = await request(server).get('/api/users');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([
+      {
+        email: "Telly.Hoeger@billy.biz",
+        id: 7,
+        name: "Kurtis Weissnat",
+        username: "Elwyn.Skiles"
+      }
+    ]);
+  });
+
+  // Test Case 7: Fetch users when CSV file contains a large number of users
+  test("Fetch users when CSV file contains a large number of users", async () => {
+    mockedExistsSync.mockReturnValue(true);
+    const header = "id,name,username,email";
+    const row = `1,User,uname,email@site.com`;
     const csv = [header, ...Array(10000).fill(row)].join("\n");
     mockedReadFileSync.mockReturnValue(csv);
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(10000);
-    expect(res.body[0]).toEqual({
-      id: "1",
+    expect(res.body[0]).toMatchObject({
+      id: 1,
       name: "User",
       username: "uname",
-      email: "email@site.com",
-      address: "addr",
-      phone: "phone",
-      website: "site",
-      company: "comp"
+      email: "email@site.com"
     });
   });
 
-  // Test Case 7: Retrieve users with Unicode and special characters in CSV
-  test("Retrieve users with Unicode and special characters in CSV", async () => {
+  // Test Case 8: Fetch users when CSV fields include commas and quotes
+  test("Fetch users when CSV fields include commas and quotes", async () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(
-      `id,name,username,email,address,phone,website,company
-3,Zoë Müller,uni©øde,zoe.müller@example.com,"123 Straße, München","+49 89 123456",müller.de,"Müller & Söhne"`
+      `id,name,address,email
+12,"Jane ""JJ"", Smith","123 Main St, Apt 2",jane@example.com`
     );
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       {
-        id: "3",
-        name: "Zoë Müller",
-        username: "uni©øde",
-        email: "zoe.müller@example.com",
-        address: "123 Straße, München",
-        phone: "+49 89 123456",
-        website: "müller.de",
-        company: "Müller & Söhne"
+        address: "123 Main St, Apt 2",
+        email: "jane@example.com",
+        id: 12,
+        name: 'Jane "JJ", Smith'
       }
     ]);
   });
 
-  // Test Case 8: POST method not allowed on /api/users
-  test("POST method not allowed on /api/users", async () => {
+  // Test Case 9: Return 405 for unsupported HTTP methods
+  test("Return 405 for unsupported HTTP methods", async () => {
     mockedExistsSync.mockReturnValue(true);
-    mockedReadFileSync.mockReturnValue("");
+    mockedReadFileSync.mockReturnValue(
+      `id,name,username,email
+1,User,uname,email@site.com`
+    );
     const res = await request(server).post('/api/users');
-    // Express default: 404 for undefined POST, not 405 unless handled
-    expect([404, 405]).toContain(res.status);
+    expect(res.status).toBe(405);
+    expect(res.body).toEqual({ error: "Method Not Allowed" });
   });
 
-  // Test Case 9: Retrieve users when CSV file has extra columns
-  test("Retrieve users when CSV file has extra columns", async () => {
+  // Test Case 10: Fetch users when some fields are missing in CSV
+  test("Fetch users when some fields are missing in CSV", async () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(
-      `id,name,username,email,address,phone,website,company,extra1,extra2
-4,Patricia Lebsack,Karianne,Julianne.OConner@kory.org,"{\"street\":\"Hoeger Mall\",\"suite\":\"Apt. 692\",\"city\":\"South Elvis\",\"zipcode\":\"53919-4257\",\"geo\":{\"lat\":\"29.4572\",\"lng\":\"-164.2990\"}}","493-170-9623 x156",kale.biz,"{\"name\":\"Robel-Corkery\",\"catchPhrase\":\"Multi-tiered zero tolerance productivity\",\"bs\":\"transition cutting-edge web services\"}",irrelevant,ignoreme`
+      `id,name
+15,Alex Doe`
     );
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
-    expect(res.body[0]).toMatchObject({
-      id: "4",
-      name: "Patricia Lebsack",
-      username: "Karianne",
-      email: "Julianne.OConner@kory.org",
-      address: '{"street":"Hoeger Mall","suite":"Apt. 692","city":"South Elvis","zipcode":"53919-4257","geo":{"lat":"29.4572","lng":"-164.2990"}}',
-      phone: "493-170-9623 x156",
-      website: "kale.biz",
-      company: '{"name":"Robel-Corkery","catchPhrase":"Multi-tiered zero tolerance productivity","bs":"transition cutting-edge web services"}'
-    });
-    // Extra columns are present, but only standard fields are checked
-  });
-
-  // Test Case 10: Retrieve users when CSV file contains only headers
-  test("Retrieve users when CSV file contains only headers", async () => {
-    mockedExistsSync.mockReturnValue(true);
-    mockedReadFileSync.mockReturnValue(
-      "id,name,username,email,address,phone,website,company"
-    );
-    const res = await request(server).get('/api/users');
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    expect(res.body).toEqual([
+      {
+        id: 15,
+        name: "Alex Doe"
+      }
+    ]);
   });
 });

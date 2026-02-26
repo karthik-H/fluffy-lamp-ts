@@ -1,184 +1,182 @@
 import { userToRow } from '../../src/fetch-users';
 
 describe('userToRow CSV Conversion', () => {
-  // Helper to deep clone objects for test isolation
-  const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
-
-  test('Test Case 1: Valid user with all fields present', () => {
+  test('Test Case 1: Convert typical user object to CSV row', () => {
     const user = {
-      address: { city: 'Springfield', street: '123 Main St', zipcode: '12345' },
-      email: 'john@example.com',
+      address: { city: 'Gwenborough', street: 'Kulas Light', zipcode: '92998-3874' },
+      email: 'Sincere@april.biz',
       id: 1,
-      name: 'John Doe',
-      phone: '555-1234',
-      username: 'johndoe',
-      website: 'johndoe.com'
+      name: 'Leanne Graham',
+      phone: '1-770-736-8031 x56442',
+      username: 'Bret',
+      website: 'hildegard.org'
     };
     const result = userToRow(user);
-    expect(result).toEqual([1, 'John Doe', 'johndoe', 'john@example.com', '123 Main St', 'Springfield', '12345', '555-1234', 'johndoe.com']);
+    expect(result).toEqual([
+      1,
+      'Leanne Graham',
+      'Bret',
+      'Sincere@april.biz',
+      'Kulas Light',
+      'Gwenborough',
+      '92998-3874',
+      '1-770-736-8031 x56442',
+      'hildegard.org'
+    ]);
   });
 
-  test('Test Case 2: User fields contain commas', () => {
+  test('Test Case 2: User fields with CSV special characters', () => {
     const user = {
-      address: { city: 'New York', street: '456 Elm St, Apt 2', zipcode: '10001' },
-      email: 'jane,smith@example.com',
+      address: { city: 'New\nCity', street: '123 "Fake" Ave., Apt. 5', zipcode: '12345' },
+      email: 'john,oconnor@example.com',
       id: 2,
-      name: 'Jane, Smith',
-      phone: '555-5678',
-      username: 'jane,smith',
-      website: 'janesmith.com'
+      name: 'John "Johnny, Jr."\nO\'Connor',
+      phone: '123-456-7890',
+      username: 'j.oconnor',
+      website: 'johnny.com'
     };
     const result = userToRow(user);
     expect(result).toEqual([
       2,
-      '"Jane, Smith"',
-      '"jane,smith"',
-      '"jane,smith@example.com"',
-      '"456 Elm St, Apt 2"',
-      'New York',
-      '10001',
-      '555-5678',
-      'janesmith.com'
+      'John "Johnny, Jr."\nO\'Connor',
+      'j.oconnor',
+      'john,oconnor@example.com',
+      '123 "Fake" Ave., Apt. 5',
+      'New\nCity',
+      '12345',
+      '123-456-7890',
+      'johnny.com'
     ]);
   });
 
-  test('Test Case 3: User fields contain quotes', () => {
+  test('Test Case 3: User object with missing optional fields', () => {
     const user = {
-      address: { city: 'Quoteville', street: '789 Oak St', zipcode: '22222' },
-      email: 'alice"ace"@example.com',
+      address: { city: 'Metropolis', street: 'Main St', zipcode: '00000' },
+      email: 'jane@example.com',
       id: 3,
-      name: 'Alice "The Ace" Doe',
-      phone: '555-9999',
-      username: 'alice"ace"',
-      website: 'aliceace.com'
+      name: 'Jane Doe',
+      username: 'jane'
+      // phone and website missing
     };
     const result = userToRow(user);
     expect(result).toEqual([
       3,
-      '"Alice ""The Ace"" Doe"',
-      '"alice""ace"""',
-      '"alice""ace""@example.com"',
-      '789 Oak St',
-      'Quoteville',
-      '22222',
-      '555-9999',
-      'aliceace.com'
+      'Jane Doe',
+      'jane',
+      'jane@example.com',
+      'Main St',
+      'Metropolis',
+      '00000',
+      '',
+      ''
     ]);
   });
 
-  test('Test Case 4: Missing address field', () => {
-    const user = {
-      email: 'bob@example.com',
-      id: 4,
-      name: 'Bob',
-      phone: '555-0000',
-      username: 'bobby',
-      website: 'bob.com'
-    };
-    const result = userToRow(user);
-    expect(result).toEqual([4, 'Bob', 'bobby', 'bob@example.com', '', '', '', '555-0000', 'bob.com']);
-  });
-
-  test('Test Case 5: Missing phone and website fields', () => {
-    const user = {
-      address: { city: 'Silicon Valley', street: '1 Hacker Way', zipcode: '94043' },
-      email: 'eve@example.com',
-      id: 5,
-      name: 'Eve',
-      username: 'eve'
-    };
-    const result = userToRow(user);
-    expect(result).toEqual([5, 'Eve', 'eve', 'eve@example.com', '1 Hacker Way', 'Silicon Valley', '94043', '', '']);
-  });
-
-  test('Test Case 6: User id is zero', () => {
-    const user = {
-      address: { city: 'Nowhere', street: 'Zero St', zipcode: '00000' },
-      email: 'zero@example.com',
-      id: 0,
-      name: 'Zero',
-      phone: '000-0000',
-      username: 'zero',
-      website: 'zero.com'
-    };
-    const result = userToRow(user);
-    expect(result).toEqual([0, 'Zero', 'zero', 'zero@example.com', 'Zero St', 'Nowhere', '00000', '000-0000', 'zero.com']);
-  });
-
-  test('Test Case 7: Missing id field', () => {
-    const user = {
-      address: { city: 'Void', street: 'No ID St', zipcode: '99999' },
-      email: 'noid@example.com',
-      name: 'NoID',
-      phone: '999-9999',
-      username: 'noid',
-      website: 'noid.com'
-    };
-    const result = userToRow(user);
-    expect(result).toEqual([null, 'NoID', 'noid', 'noid@example.com', 'No ID St', 'Void', '99999', '999-9999', 'noid.com']);
-  });
-
-  test('Test Case 8: Fields with empty strings', () => {
+  test('Test Case 4: User fields with empty strings', () => {
     const user = {
       address: { city: '', street: '', zipcode: '' },
       email: '',
-      id: 6,
+      id: 4,
       name: '',
       phone: '',
       username: '',
       website: ''
     };
     const result = userToRow(user);
-    expect(result).toEqual([6, '', '', '', '', '', '', '', '']);
+    expect(result).toEqual([4, '', '', '', '', '', '', '', '']);
   });
 
-  test('Test Case 9: Fields with null values', () => {
+  test('Test Case 5: User fields are null', () => {
     const user = {
       address: { city: null, street: null, zipcode: null },
       email: null,
-      id: null,
+      id: 5,
       name: null,
       phone: null,
       username: null,
       website: null
     };
     const result = userToRow(user);
-    expect(result).toEqual([null, '', '', '', '', '', '', '', '']);
+    expect(result).toEqual([5, '', '', '', '', '', '', '', '']);
   });
 
-  test('Test Case 10: Fields with non-string types', () => {
+  test('Test Case 6: User object missing address field', () => {
     const user = {
-      address: { city: true, street: 999, zipcode: false },
-      email: false,
+      email: 'noaddr@example.com',
+      id: 6,
+      name: 'No Address',
+      phone: '555-0000',
+      username: 'noaddr',
+      website: 'noaddr.com'
+    };
+    const result = userToRow(user);
+    expect(result).toEqual([
+      6,
+      'No Address',
+      'noaddr',
+      'noaddr@example.com',
+      '',
+      '',
+      '',
+      '555-0000',
+      'noaddr.com'
+    ]);
+  });
+
+  test('Test Case 7: User fields with invalid types', () => {
+    const user = {
+      address: { city: { object: 'city' }, street: ['Not', 'a', 'string'], zipcode: false },
+      email: null,
       id: 7,
       name: 12345,
-      phone: 5551234,
+      phone: 0,
       username: true,
       website: null
     };
     const result = userToRow(user);
-    expect(result).toEqual([7, '12345', 'true', 'false', '999', 'true', 'false', '5551234', '']);
+    expect(result).toEqual([
+      7,
+      '12345',
+      'true',
+      '',
+      'Not,a,string',
+      '[object Object]',
+      'false',
+      '0',
+      ''
+    ]);
   });
 
-  test('Test Case 11: User object with only id field', () => {
-    const user = { id: 8 };
-    const result = userToRow(user);
-    expect(result).toEqual([8, '', '', '', '', '', '', '', '']);
+  test('Test Case 8: User object is null', () => {
+    const user = null;
+    expect(() => userToRow(user)).toThrow();
   });
 
-  test('Test Case 12: User object contains additional unexpected fields', () => {
+  test('Test Case 9: User object is undefined', () => {
+    let user: any = undefined;
+    expect(() => userToRow(user)).toThrow();
+  });
+
+  test('Test Case 10: User object missing \'id\' field', () => {
     const user = {
-      address: { city: 'Extratown', street: 'Extra St', zipcode: '88888' },
-      company: 'ExtraCorp',
-      email: 'extra@example.com',
-      hobbies: ['reading', 'coding'],
-      id: 9,
-      name: 'Extra Fields',
-      phone: '555-8888',
-      username: 'extra',
-      website: 'extra.com'
+      address: { city: 'Testville', street: 'Test', zipcode: '00001' },
+      email: 'noid@example.com',
+      name: 'Missing ID',
+      phone: '555-1111',
+      username: 'noid',
+      website: 'noid.com'
     };
     const result = userToRow(user);
-    expect(result).toEqual([9, 'Extra Fields', 'extra', 'extra@example.com', 'Extra St', 'Extratown', '88888', '555-8888', 'extra.com']);
+    expect(result).toEqual([
+      '',
+      'Missing ID',
+      'noid',
+      'noid@example.com',
+      'Test',
+      'Testville',
+      '00001',
+      '555-1111',
+      'noid.com'
+    ]);
   });
 });
