@@ -6,20 +6,14 @@ jest.mock('fs');
 (fs as any).__mockFileContent = '';
 
 const CSV_PATH = path.join(__dirname, 'test_users.csv');
-const CSV_PATH_INVALID = path.join(__dirname, 'nonexistent_dir', 'test_users.csv');
 const CSV_PATH_NO_PERMISSION = '/root/test_users.csv';
-const CSV_PATH_READONLY = path.join(__dirname, 'readonly_users.csv');
 const CSV_PATH_DIR = __dirname;
-const CSV_PATH_UNWRITABLE_DIR = '/root/unwritable_dir/test_users.csv';
 
 describe('writeFileSync', () => {
   afterEach(() => {
     jest.clearAllMocks();
     if (fs.existsSync(CSV_PATH)) {
       fs.unlinkSync(CSV_PATH);
-    }
-    if (fs.existsSync(CSV_PATH_READONLY)) {
-      fs.unlinkSync(CSV_PATH_READONLY);
     }
   });
 
@@ -45,7 +39,6 @@ describe('writeFileSync', () => {
       },
     }));
 
-    // Flatten users for CSV
     const headers = [
       'id', 'name', 'email', 'username', 'phone', 'website',
       'address.street', 'address.suite', 'address.city', 'address.zipcode',
@@ -105,7 +98,6 @@ describe('writeFileSync', () => {
   // Test Case 4: Do not create file on API fetch failure
   test('Do not create file on API fetch failure', () => {
     // Simulate API fetch failure by not generating CSV and not calling writeFileSync
-    // No CSV string, so writeFileSync should not be called
     expect(fs.writeFileSync).not.toHaveBeenCalled();
   });
 

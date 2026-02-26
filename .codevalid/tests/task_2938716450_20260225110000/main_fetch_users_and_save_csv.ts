@@ -5,17 +5,15 @@ import { main } from "../../src/fetch-users";
 
 const DATA_DIR = join(process.cwd(), "data");
 const CSV_PATH = join(DATA_DIR, "users.csv");
-const USERS_URL = "https://jsonplaceholder.typicode.com/users";
 
 // Helper: mock fetch
-function mockFetch(response: any, opts: { ok?: boolean; status?: number; delay?: number; throw?: boolean; } = {}) {
+function mockFetch(response: any, opts: { ok?: boolean; status?: number; throw?: boolean; } = {}) {
   global.fetch = jest.fn().mockImplementation(() => {
     if (opts.throw) return Promise.reject(new Error("Network error"));
-    if (opts.delay) return new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), opts.delay));
     return Promise.resolve({
       ok: opts.ok ?? true,
       status: opts.status ?? 200,
-      json: () => Promise.resolve(response),
+      json: () => typeof response === "function" ? response() : Promise.resolve(response),
       text: () => Promise.resolve(typeof response === "string" ? response : JSON.stringify(response)),
     });
   });
@@ -243,14 +241,7 @@ describe("main_fetch_users_and_save_csv", () => {
 
   // Test Case 10: API returns invalid JSON
   it("API returns invalid JSON", async () => {
-    global.fetch = jest.fn().mockImplementation(() =>
-      Promise.resolve({
-        ok: true,
-        status: 200,
-        json: () => Promise.reject(new Error("Malformed JSON")),
-        text: () => Promise.resolve("not json"),
-      })
-    );
+    mockFetch(() => Promise.reject(new Error("Malformed JSON")));
     await expect(main()).rejects.toThrow();
     expect(existsSync(CSV_PATH)).toBe(false);
     expect(logSpy).not.toHaveBeenCalled();

@@ -1,9 +1,6 @@
 import { userToRow } from '../../src/fetch-users';
 
 describe('userToRow CSV Conversion', () => {
-  // Helper to deep clone objects for test isolation
-  const clone = (obj: any) => JSON.parse(JSON.stringify(obj));
-
   test('Test Case 1: Convert typical user object to CSV row', () => {
     const user = {
       address: { city: 'Gwenborough', street: 'Kulas Light', zipcode: '92998-3874' },

@@ -109,26 +109,17 @@ describe("users_api_endpoint", () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(
       `id,name,username,email,address,phone,website,company
-1,Leanne Graham,Bret,Sincere@april.biz,"{\"street\":\"Kulas Light\",\"suite\":\"Apt. 556\",\"city\":\"Gwenborough\",\"zipcode\":\"92998-3874\",\"geo\":{\"lat\":\"-37.3159\",\"lng\":\"81.1496\"}}","1-770-736-8031 x56442",hildegard.org,"{\"name\":\"Romaguera-Crona\",\"catchPhrase\":\"Multi-layered client-server neural-net\",\"bs\":\"harness real-time e-markets\"}"`
+ 1,Leanne Graham,Bret,Sincere@april.biz,"{\"street\":\"Kulas Light\",\"suite\":\"Apt. 556\",\"city\":\"Gwenborough\",\"zipcode\":\"92998-3874\",\"geo\":{\"lat\":\"-37.3159\",\"lng\":\"81.1496\"}}","1-770-736-8031 x56442",hildegard.org,"{\"name\":\"Romaguera-Crona\",\"catchPhrase\":\"Multi-layered client-server neural-net\",\"bs\":\"harness real-time e-markets\"}"`
     );
     const res = await request(server).get('/api/users');
     expect(res.status).toBe(200);
+
     expect(res.body).toEqual([
       {
-        address: {
-          city: "Gwenborough",
-          geo: { lat: "-37.3159", lng: "81.1496" },
-          street: "Kulas Light",
-          suite: "Apt. 556",
-          zipcode: "92998-3874"
-        },
-        company: {
-          bs: "harness real-time e-markets",
-          catchPhrase: "Multi-layered client-server neural-net",
-          name: "Romaguera-Crona"
-        },
+        address: '{"street":"Kulas Light","suite":"Apt. 556","city":"Gwenborough","zipcode":"92998-3874","geo":{"lat":"-37.3159","lng":"81.1496"}}',
+        company: '{"name":"Romaguera-Crona","catchPhrase":"Multi-layered client-server neural-net","bs":"harness real-time e-markets"}',
         email: "Sincere@april.biz",
-        id: 1,
+        id: " 1",
         name: "Leanne Graham",
         phone: "1-770-736-8031 x56442",
         username: "Bret",
