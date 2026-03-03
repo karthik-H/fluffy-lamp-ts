@@ -3,6 +3,7 @@
     "implementation": [
       {
         "How_is_it_connected_to_implementation": "Serves as the frontend entry point. It does not fetch or trigger the JSONPlaceholder request; it only loads the server's static assets.",
+        "change_type": "unchanged",
         "file_path": "public/index.html",
         "id": "index_html_static_frontend",
         "name": "index.html (static frontend)",
@@ -11,6 +12,7 @@
       },
       {
         "How_is_it_connected_to_implementation": "Exposes the generated CSV as JSON after it has been written, making stored user data retrievable.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "get_api_users",
         "name": "GET /api/users",
@@ -19,6 +21,7 @@
       },
       {
         "How_is_it_connected_to_implementation": "Executes the core requirement: fetches users from JSONPlaceholder, converts data to CSV, and writes it to persistent storage.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main",
@@ -27,6 +30,7 @@
       },
       {
         "How_is_it_connected_to_implementation": "Maps a user object into a list of CSV-safe field values.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow",
@@ -35,6 +39,7 @@
       },
       {
         "How_is_it_connected_to_implementation": "Ensures CSV integrity by quoting fields that contain commas, quotes, or newlines.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
         "name": "escapeCsvField",
@@ -45,7 +50,8 @@
     "missing_implementations": [
       "CSV file contains columns corresponding to each field in the user JSON object (e.g., id, name, username, email, etc.).",
       "CSV column names are identical to the field names in the JSON object.",
-      "No user data is omitted or transformed; all fields from the API response are included."
+      "No user data is omitted or transformed; all fields from the API response are included.",
+      "before saving information check filter for data with location as Boone"
     ]
   }
 }
