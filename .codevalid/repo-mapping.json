@@ -1,6 +1,15 @@
 {
   "task_2938716450_20260225110000": {
     "implementation": [],
-    "missing_implementations": []
+    "missing_implementations": [
+      "System sends an HTTP GET request to https://jsonplaceholder.typicode.com/users.",
+      "System receives an array of user objects in the response.",
+      "Each user object in the response is included as a row in the resulting CSV file.",
+      "CSV file contains columns corresponding to each field in the user JSON object (e.g., id, name, username, email, etc.).",
+      "CSV column names are identical to the field names in the JSON object.",
+      "CSV file is saved to persistent storage and is accessible for later retrieval.",
+      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error.",
+      "No user data is omitted or transformed; all fields from the API response are included."
+    ]
   }
 }
