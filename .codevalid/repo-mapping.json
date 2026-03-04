@@ -2,7 +2,7 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Serves as the frontend entry point. It does not fetch or trigger the JSONPlaceholder request; it only loads the server's static assets.",
+        "How_is_it_connected_to_implementation": "Serves only as a static frontend entry point; contains no triggers for fetching users or generating CSV.",
         "change_type": "unchanged",
         "file_path": "public/index.html",
         "id": "index_html_static_frontend",
@@ -11,7 +11,7 @@
         "type": "component"
       },
       {
-        "How_is_it_connected_to_implementation": "Exposes the generated CSV as JSON after it has been written, making stored user data retrievable.",
+        "How_is_it_connected_to_implementation": "Exposes stored CSV data as parsed JSON; does not interact with JSONPlaceholder or CSV generation.",
         "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "get_api_users",
@@ -20,25 +20,25 @@
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Executes the core requirement: fetches users from JSONPlaceholder, converts data to CSV, and writes it to persistent storage.",
+        "How_is_it_connected_to_implementation": "Fetches users from JSONPlaceholder, converts selected fields into CSV, and writes the CSV to disk. Does not apply filtering or include all user fields.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main",
-        "pseudo_code": "SEND HTTP GET to USERS_URL\nIF response not OK\n    THROW error and STOP\nPARSE response JSON as users array\nDEFINE CSV headers exactly matching extracted fields\nFOR each user\n    CONVERT user to CSV row\nJOIN rows into final CSV string\nENSURE data directory exists\nWRITE CSV file to disk\nLOG success",
+        "pseudo_code": "SEND HTTP GET to USERS_URL\nIF response not OK\n    THROW error\nPARSE response JSON as users array\nDEFINE fixed CSV headers (id, name, username, email, street, city, zipcode, phone, website)\nFOR each user\n    MAP user fields into CSV row\nJOIN rows into CSV string\nENSURE data directory exists\nWRITE CSV file to disk\nLOG success",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Maps a user object into a list of CSV-safe field values.",
+        "How_is_it_connected_to_implementation": "Maps selected fields of a user object into CSV-safe values; omits address.suite, company, geo, and any other nested fields.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow",
-        "pseudo_code": "FOR each required CSV column\n    READ corresponding user field\n    ESCAPE value for CSV\nRETURN list of column values",
+        "pseudo_code": "FOR each fixed CSV column\n    READ corresponding user field\n    ESCAPE value for CSV\nRETURN list of column values",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Ensures CSV integrity by quoting fields that contain commas, quotes, or newlines.",
+        "How_is_it_connected_to_implementation": "Ensures CSV integrity by sanitizing fields with commas, quotes, or newlines.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
