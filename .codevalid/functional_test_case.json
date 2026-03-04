@@ -1,5 +1,694 @@
 {
-  "function": [],
-  "component": [],
-  "endpoint": []
+  "function": [
+    {
+      "implementation_id": "main",
+      "test_cases": [
+        {
+          "description": "Ensures users are successfully fetched, converted to CSV, and written to disk.",
+          "id": "tc_successful_fetch_and_csv_write",
+          "implementation_id": "main",
+          "name": "Successful user fetch and CSV generation",
+          "test_setup": {
+            "given": "API responds 200 OK with a non\u2011empty user array containing expected fields; data directory exists or can be created.",
+            "then": "CSV file is created containing all user fields as headers and a row for each user.",
+            "when": "main() is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures only users with location value 'Boone' are written to the CSV.",
+          "id": "tc_filter_out_users_not_in_boone",
+          "implementation_id": "main",
+          "name": "Filter removes users whose location is not Boone",
+          "test_setup": {
+            "given": "API responds 200 OK with a mixture of users, some with location='Boone' and others with different locations.",
+            "then": "CSV includes only users whose location field equals 'Boone'; others are omitted.",
+            "when": "main() is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures no file is written and an error is signaled if filtering results in zero users.",
+          "id": "tc_no_users_after_filter",
+          "implementation_id": "main",
+          "name": "No CSV generated when Boone filter removes all users",
+          "test_setup": {
+            "given": "API responds 200 OK with users, but none contain location='Boone'.",
+            "then": "No CSV file is created or modified, and an error is reported.",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures error is thrown and no CSV file is created when API response is not OK.",
+          "id": "tc_api_failure_non_200",
+          "implementation_id": "main",
+          "name": "API request fails with non\u2011200 response",
+          "test_setup": {
+            "given": "API responds with 500 Internal Server Error (or any non\u2011200).",
+            "then": "An error is thrown and no CSV file is created or modified.",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures system does not create CSV if API returns an empty array.",
+          "id": "tc_api_returns_empty_array",
+          "implementation_id": "main",
+          "name": "Empty user array prevents CSV creation",
+          "test_setup": {
+            "given": "API returns 200 OK with an empty array [].",
+            "then": "An error is signaled and no CSV file is created.",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures CSV includes all expected headers even when some users lack certain fields.",
+          "id": "tc_missing_fields_in_user_objects",
+          "implementation_id": "main",
+          "name": "Users missing fields still appear with empty CSV values",
+          "test_setup": {
+            "given": "API returns 200 OK with user objects missing certain fields (e.g., username, email).",
+            "then": "CSV is generated with full headers; missing field values are blank in the CSV.",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures error handling when the data directory cannot be created.",
+          "id": "tc_directory_creation_failure",
+          "implementation_id": "main",
+          "name": "Directory creation failure prevents file write",
+          "test_setup": {
+            "given": "File system denies permission to create the required data directory.",
+            "then": "An error is thrown and no CSV file is written.",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures system handles unexpected write errors.",
+          "id": "tc_file_write_failure",
+          "implementation_id": "main",
+          "name": "File write failure is handled",
+          "test_setup": {
+            "given": "File system allows directory creation but fails writing the CSV file.",
+            "then": "An error is thrown and no partial CSV is saved.",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures that header names match the JSON object field names with no transformation.",
+          "id": "tc_csv_headers_match_json_fields",
+          "implementation_id": "main",
+          "name": "CSV headers match JSON object keys exactly",
+          "test_setup": {
+            "given": "API returns 200 OK with known user fields (id, name, username, email, etc.).",
+            "then": "CSV headers exactly match the JSON keys for all fields present.",
+            "when": "main() is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures that the success log message is emitted after a successful write.",
+          "id": "tc_logs_success_on_completion",
+          "implementation_id": "main",
+          "name": "Logs success message when CSV generation completes",
+          "test_setup": {
+            "given": "API returns valid users and CSV is written successfully.",
+            "then": "A success message appears in logs.",
+            "when": "main() is called"
+          },
+          "type": "positive"
+        }
+      ]
+    },
+    {
+      "implementation_id": "usertorow",
+      "test_cases": [
+        {
+          "description": "Ensures userToRow maps all predefined CSV columns using corresponding user fields.",
+          "id": "tc_userToRow_basic_mapping",
+          "implementation_id": "usertorow",
+          "name": "Maps selected user fields into CSV row",
+          "test_setup": {
+            "given": "A user object with all expected top\u2011level fields populated",
+            "then": "The returned array contains values for each predefined CSV column in the correct order",
+            "when": "userToRow is called with the user object"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Tests behavior when one or more predefined fields do not exist on the user object.",
+          "id": "tc_userToRow_missing_fields",
+          "implementation_id": "usertorow",
+          "name": "Handles missing user fields gracefully",
+          "test_setup": {
+            "given": "A user object missing several expected properties",
+            "then": "Undefined or empty values are returned for the missing fields, with no exceptions thrown",
+            "when": "userToRow is invoked"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures fields containing commas, quotes, or newlines are escaped before being returned.",
+          "id": "tc_userToRow_escapes_fields",
+          "implementation_id": "usertorow",
+          "name": "Escapes special characters using escapeCsvField",
+          "test_setup": {
+            "given": "A user object containing special characters in string fields",
+            "then": "Returned values are escaped according to CSV rules",
+            "when": "userToRow executes its escapeCsvField calls"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Validates that nested fields such as address.street or company.name are not flattened or included.",
+          "id": "tc_userToRow_ignores_nested_fields",
+          "implementation_id": "usertorow",
+          "name": "Ignores nested JSON fields",
+          "test_setup": {
+            "given": "A user object containing nested objects",
+            "then": "No nested field values appear in the resulting row",
+            "when": "userToRow is invoked"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures the function handles an empty object without errors.",
+          "id": "tc_userToRow_handles_empty_user_object",
+          "implementation_id": "usertorow",
+          "name": "Handles empty input object",
+          "test_setup": {
+            "given": "An empty {} user object",
+            "then": "An array containing empty or undefined values for all predefined columns is returned",
+            "when": "userToRow is executed"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures the mismatch between requirement (all fields) and implementation (predefined subset only) is covered.",
+          "id": "tc_csv_generation_all_fields_required",
+          "implementation_id": "usertorow",
+          "name": "CSV must include all user fields per acceptance criteria, but function omits some",
+          "test_setup": {
+            "given": "The requirement states all JSON fields must be present, but userToRow only maps selected fields",
+            "then": "The test detects missing fields inconsistent with requirements",
+            "when": "userToRow is called during CSV generation"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Covers requirement violation\u2014data should be filtered by Boone but userToRow does not filter.",
+          "id": "tc_csv_generation_no_boone_filter_applied",
+          "implementation_id": "usertorow",
+          "name": "Function does not apply Boone location filter",
+          "test_setup": {
+            "given": "Users with various location values",
+            "then": "Rows for users outside Boone are still produced, detecting the missing filter logic",
+            "when": "userToRow processes users without filtering"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures the function's behavior is defined when given null instead of a user object.",
+          "id": "tc_userToRow_null_input",
+          "implementation_id": "usertorow",
+          "name": "Handles null input",
+          "test_setup": {
+            "given": "Input value null",
+            "then": "Function returns an error or fails safely according to implementation expectation",
+            "when": "userToRow is invoked"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Tests robustness when input is not a valid user object.",
+          "id": "tc_userToRow_non_object_input",
+          "implementation_id": "usertorow",
+          "name": "Handles non\u2011object inputs",
+          "test_setup": {
+            "given": "Inputs like a string, number, or array",
+            "then": "Function handles or rejects invalid input",
+            "when": "userToRow is executed"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "CSV rows must be produced in the same order as predefined columns.",
+          "id": "tc_csv_row_column_order",
+          "implementation_id": "usertorow",
+          "name": "Ensures column order consistency",
+          "test_setup": {
+            "given": "A valid user object with known field values",
+            "then": "Output order exactly matches the predefined column ordering",
+            "when": "userToRow generates the row array"
+          },
+          "type": "positive"
+        }
+      ]
+    },
+    {
+      "implementation_id": "escapecsvfield",
+      "test_cases": [
+        {
+          "description": "Value without commas, quotes, or newlines should be returned unchanged.",
+          "id": "tc_escape_basic_no_special_chars",
+          "implementation_id": "escapecsvfield",
+          "name": "No special characters",
+          "test_setup": {
+            "given": "value = HelloWorld",
+            "then": "returns HelloWorld",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Value containing a comma should be wrapped in quotes.",
+          "id": "tc_escape_with_comma",
+          "implementation_id": "escapecsvfield",
+          "name": "Contains comma",
+          "test_setup": {
+            "given": "value = Hello,World",
+            "then": "returns \"Hello,World\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Value containing quotes should be wrapped in quotes and inner quotes escaped.",
+          "id": "tc_escape_with_quote",
+          "implementation_id": "escapecsvfield",
+          "name": "Contains quote",
+          "test_setup": {
+            "given": "value = He said \"Hi\"",
+            "then": "returns \"He said \"\"Hi\"\"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Value containing a newline should be wrapped in quotes.",
+          "id": "tc_escape_with_newline",
+          "implementation_id": "escapecsvfield",
+          "name": "Contains newline",
+          "test_setup": {
+            "given": "value = Hello\nWorld",
+            "then": "returns \"Hello\nWorld\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Value with commas, quotes, and newlines should be fully sanitized.",
+          "id": "tc_escape_with_multiple_special_chars",
+          "implementation_id": "escapecsvfield",
+          "name": "Multiple special characters",
+          "test_setup": {
+            "given": "value = \"Hello,\\nWorld\"",
+            "then": "returns \"\"\"Hello,\nWorld\"\"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Empty string should be returned unchanged.",
+          "id": "tc_escape_empty_string",
+          "implementation_id": "escapecsvfield",
+          "name": "Empty string",
+          "test_setup": {
+            "given": "value = \"\"",
+            "then": "returns \"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Numeric input should be converted to string and returned unchanged.",
+          "id": "tc_escape_value_is_number",
+          "implementation_id": "escapecsvfield",
+          "name": "Number input",
+          "test_setup": {
+            "given": "value = 12345",
+            "then": "returns 12345",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Boolean input should be converted to string and returned unchanged.",
+          "id": "tc_escape_value_is_boolean",
+          "implementation_id": "escapecsvfield",
+          "name": "Boolean input",
+          "test_setup": {
+            "given": "value = true",
+            "then": "returns true",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Null should convert to string 'null'.",
+          "id": "tc_escape_value_is_null",
+          "implementation_id": "escapecsvfield",
+          "name": "Null input",
+          "test_setup": {
+            "given": "value = null",
+            "then": "returns null",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Object should convert to string '[object Object]' unless JSON stringified outside.",
+          "id": "tc_escape_value_is_object",
+          "implementation_id": "escapecsvfield",
+          "name": "Object input",
+          "test_setup": {
+            "given": "value = {}",
+            "then": "returns [object Object]",
+            "when": "escapeCsvField is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Array should convert to comma-separated string and then wrapped in quotes.",
+          "id": "tc_escape_value_is_array",
+          "implementation_id": "escapecsvfield",
+          "name": "Array input",
+          "test_setup": {
+            "given": "value = [1,2,3]",
+            "then": "returns \"1,2,3\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Single quote character should be escaped and wrapped.",
+          "id": "tc_escape_only_quotes",
+          "implementation_id": "escapecsvfield",
+          "name": "Only quotes",
+          "test_setup": {
+            "given": "value = \"\"",
+            "then": "returns \"\"\"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Long strings should still follow escape rules.",
+          "id": "tc_escape_large_string",
+          "implementation_id": "escapecsvfield",
+          "name": "Long string input",
+          "test_setup": {
+            "given": "value = T.repeat(255)",
+            "then": "returns T.repeat(255)",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        }
+      ]
+    }
+  ],
+  "component": [
+    {
+      "implementation_id": "index_html_static_frontend",
+      "test_cases": [
+        {
+          "description": "Verify that the static index.html page loads without errors.",
+          "id": "tc_static_render_001",
+          "implementation_id": "index_html_static_frontend",
+          "name": "renders_static_landing_page",
+          "test_setup": {
+            "given": "User navigates to the application's root URL.",
+            "then": "Static HTML content renders successfully with no dynamic behavior triggered.",
+            "when": "The browser loads index.html."
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensure that the static index.html page does not trigger any HTTP requests.",
+          "id": "tc_no_api_calls_002",
+          "implementation_id": "index_html_static_frontend",
+          "name": "no_api_call_is_triggered",
+          "test_setup": {
+            "given": "Static index.html with no JavaScript logic for API calls.",
+            "then": "No HTTP GET request is sent to https://jsonplaceholder.typicode.com/users.",
+            "when": "Page loads and user interacts with visible elements."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Validate that the page does not filter data by Boone because no logic exists.",
+          "id": "tc_no_filtering_logic_003",
+          "implementation_id": "index_html_static_frontend",
+          "name": "no_filtering_logic_present",
+          "test_setup": {
+            "given": "No JS implementation for filtering.",
+            "then": "No filtering of user data occurs.",
+            "when": "User loads the page."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that CSV generation is not triggered since no such logic exists.",
+          "id": "tc_no_csv_creation_004",
+          "implementation_id": "index_html_static_frontend",
+          "name": "no_csv_creation_logic_present",
+          "test_setup": {
+            "given": "Static page with no link or script for CSV creation.",
+            "then": "No CSV file is created or downloaded.",
+            "when": "User loads or interacts with the page."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensure core static UI elements appear (e.g., header referencing user retrieval).",
+          "id": "tc_static_elements_visible_005",
+          "implementation_id": "index_html_static_frontend",
+          "name": "static_elements_render_correctly",
+          "test_setup": {
+            "given": "Page contains static textual content.",
+            "then": "Text mentioning retrieval of user information and CSV appears as written in HTML.",
+            "when": "User loads the page."
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verify that clicking or interacting with static elements produces no network or CSV creation behavior.",
+          "id": "tc_user_interaction_no_effect_006",
+          "implementation_id": "index_html_static_frontend",
+          "name": "user_interaction_does_not_trigger_logic",
+          "test_setup": {
+            "given": "Static HTML elements with no event handlers.",
+            "then": "No logic executes and nothing changes beyond standard browser behavior.",
+            "when": "User clicks, highlights text, or interacts with page elements."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify page behavior remains unaffected even if JavaScript is disabled.",
+          "id": "tc_missing_js_edge_007",
+          "implementation_id": "index_html_static_frontend",
+          "name": "edge_case_no_javascript_present",
+          "test_setup": {
+            "given": "index.html contains no script tags for API or CSV logic.",
+            "then": "Page displays identically because no scripts are needed.",
+            "when": "User loads the page with JS disabled."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensure that no error messages appear regarding API failures since no API calls occur.",
+          "id": "tc_error_handling_absent_008",
+          "implementation_id": "index_html_static_frontend",
+          "name": "no_error_handling_due_to_no_logic",
+          "test_setup": {
+            "given": "No backend communication or JS logic exists.",
+            "then": "No API-related error messages appear in the UI.",
+            "when": "User loads the page under poor network or offline conditions."
+          },
+          "type": "negative"
+        }
+      ]
+    }
+  ],
+  "endpoint": [
+    {
+      "implementation_id": "get_api_users",
+      "test_cases": [
+        {
+          "description": "Returns parsed users JSON when users.csv exists",
+          "id": "tc_get_users_csv_exists",
+          "implementation_id": "get_api_users",
+          "name": "Get users when CSV exists",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "email": "test@example.com",
+                "id": 1,
+                "name": "Test User"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv exists and contains valid rows",
+            "then": "CSV is parsed and JSON array is returned",
+            "when": "GET /api/users is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Returns 404 when CSV is missing",
+          "id": "tc_get_users_csv_missing",
+          "implementation_id": "get_api_users",
+          "name": "Get users when CSV does not exist",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "users.csv not found"
+          },
+          "response_status_code": 404,
+          "test_setup": {
+            "given": "users.csv does not exist",
+            "then": "System returns 404 and error JSON",
+            "when": "GET /api/users is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Returns empty array if CSV contains no data",
+          "id": "tc_get_users_csv_empty",
+          "implementation_id": "get_api_users",
+          "name": "CSV exists but is empty",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": []
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv exists but contains only headers",
+            "then": "System returns an empty array",
+            "when": "GET /api/users is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Server handles unreadable or corrupted CSV",
+          "id": "tc_get_users_csv_malformed",
+          "implementation_id": "get_api_users",
+          "name": "Malformed CSV file",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Failed to parse CSV"
+          },
+          "response_status_code": 500,
+          "test_setup": {
+            "given": "users.csv exists but contains malformed rows",
+            "then": "System returns 500 with parse error",
+            "when": "GET /api/users is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures system can parse large CSV without timeout",
+          "id": "tc_get_users_csv_large",
+          "implementation_id": "get_api_users",
+          "name": "Handle large CSV file",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": "T.repeat(50000)"
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv contains tens of thousands of rows",
+            "then": "System returns full JSON array without error",
+            "when": "GET /api/users is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "System handles missing fields gracefully",
+          "id": "tc_get_users_missing_fields",
+          "implementation_id": "get_api_users",
+          "name": "CSV missing expected columns",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "id": 1
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "CSV exists but some columns are missing",
+            "then": "System parses available fields only",
+            "when": "GET /api/users is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensure parsing supports unicode characters",
+          "id": "tc_get_users_non_ascii",
+          "implementation_id": "get_api_users",
+          "name": "CSV contains non-ASCII characters",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "id": 1,
+                "name": "Jos\u00e9 \u00c1lvarez"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "CSV contains unicode text",
+            "then": "JSON includes proper unicode strings",
+            "when": "GET /api/users is called"
+          },
+          "type": "positive"
+        }
+      ]
+    }
+  ]
 }
