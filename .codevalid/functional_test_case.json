@@ -809,7 +809,7 @@
           "update_type": "modify"
         },
         {
-          "description": "Unicode characters should not trigger quoting unless they contain special characters.",
+          "description": "Unicode characters should not trigger quoting unless they contain CSV special characters.",
           "id": "escape_csv_012_special_unicode_characters",
           "implementation_id": "escapecsvfield",
           "name": "Unicode allowed",
@@ -836,7 +836,7 @@
         },
         {
           "description": "Leading or trailing spaces alone should not trigger quoting.",
-          "id": "Leading_trailing_spaces_0onb",
+          "id": "Leading_trailing_spaces",
           "implementation_id": "escapecsvfield",
           "name": "Leading/trailing spaces",
           "test_setup": {
@@ -849,7 +849,7 @@
         },
         {
           "description": "Tab characters should not trigger quoting.",
-          "id": "Tab_inside_string_ee21",
+          "id": "Tab_inside_string",
           "implementation_id": "escapecsvfield",
           "name": "Tab inside string",
           "test_setup": {
@@ -862,7 +862,7 @@
         },
         {
           "description": "Boolean values should be converted to strings.",
-          "id": "Boolean_input",
+          "id": "Boolean_input_5b41",
           "implementation_id": "escapecsvfield",
           "name": "Boolean input",
           "test_setup": {
@@ -875,7 +875,7 @@
         },
         {
           "description": "Semicolon should not trigger quoting.",
-          "id": "String_containing_semicolon_a4rv",
+          "id": "String_containing_semicolon",
           "implementation_id": "escapecsvfield",
           "name": "String containing semicolon",
           "test_setup": {
@@ -888,7 +888,7 @@
         },
         {
           "description": "Whitespace mixing should not trigger quoting unless CSV special characters are present.",
-          "id": "String_with_mixed_whitespace_but_no_special_CSV_chars_st5s",
+          "id": "String_with_mixed_whitespace_but_no_special_CSV_chars",
           "implementation_id": "escapecsvfield",
           "name": "String with mixed whitespace but no special CSV chars",
           "test_setup": {
@@ -900,8 +900,8 @@
           "update_type": "add"
         },
         {
-          "description": "Long strings should be returned unchanged unless special characters are included.",
-          "id": "Very_long_string_without_special_chars_elay",
+          "description": "Long strings should return unchanged unless containing CSV special characters.",
+          "id": "Very_long_string_without_special_chars",
           "implementation_id": "escapecsvfield",
           "name": "Very long string without special chars",
           "test_setup": {
@@ -913,8 +913,8 @@
           "update_type": "add"
         },
         {
-          "description": "Long strings containing commas must still be quoted.",
-          "id": "Very_long_string_with_commas_lrkl",
+          "description": "Long strings containing commas must be quoted.",
+          "id": "Very_long_string_with_commas",
           "implementation_id": "escapecsvfield",
           "name": "Very long string with commas",
           "test_setup": {
@@ -1380,6 +1380,485 @@
           "type": "positive"
         }
       ]
+    },
+    {
+      "implementation_id": "filterusersbylocationboone",
+      "test_cases": [
+        {
+          "description": "Ensures the function returns only users whose address.city is Boone.",
+          "id": "filter_only_boone_users_happy_path",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "filter_only_boone_users_happy_path",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Dallas"
+                  },
+                  "id": 2,
+                  "name": "B"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "C"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "C"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called with the user list"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Function should return an empty array when no users have city = Boone.",
+          "id": "no_users_from_boone_returns_empty_list",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "no_users_from_boone_returns_empty_list",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Atlanta"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Dallas"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "If all users belong to Boone, function returns the entire input.",
+          "id": "all_users_from_boone_return_all",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "all_users_from_boone_return_all",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Function should return an empty list when input is empty.",
+          "id": "empty_input_array_returns_empty",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "empty_input_array_returns_empty",
+          "test_setup": {
+            "given": {
+              "users": []
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "If a user has no address field, it must not be included in the output.",
+          "id": "missing_address_field_user_skipped",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "missing_address_field_user_skipped",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Users with address but without city field are excluded.",
+          "id": "missing_city_field_user_skipped",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "missing_city_field_user_skipped",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {},
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Validation that city comparison is case-sensitive and only exact 'Boone' matches are allowed.",
+          "id": "city_value_case_sensitive_non_boone_not_included",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "city_value_case_sensitive_non_boone_not_included",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "BoOne"
+                  },
+                  "id": 2,
+                  "name": "B"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "C"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "C"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Tests boundary condition with very large user arrays.",
+          "id": "very_large_input_array_handled_correctly",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "very_large_input_array_handled_correctly",
+          "test_setup": {
+            "given": {
+              "users": "T.repeat(10000) where each element is a valid user object, half with city='Boone'"
+            },
+            "then": {
+              "result": "Filtered list containing only users with city='Boone'"
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Checks behavior when input is null. Expected behavior: return empty or throw error depending on function contract.",
+          "id": "null_input_throws_or_returns_empty_based_on_implementation",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "null_input_throws_or_returns_empty_based_on_implementation",
+          "test_setup": {
+            "given": {
+              "users": null
+            },
+            "then": {
+              "result": "Throws error or returns empty list"
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Function should reject non-array inputs.",
+          "id": "non_array_input_throws_error",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "non_array_input_throws_error",
+          "test_setup": {
+            "given": {
+              "users": {
+                "address": {
+                  "city": "Boone"
+                },
+                "id": 1,
+                "name": "A"
+              }
+            },
+            "then": {
+              "result": "Error thrown due to invalid input type"
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Users that are not objects or lack required structure should be skipped.",
+          "id": "mixed_type_items_in_array_invalid_entries_ignored",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "mixed_type_items_in_array_invalid_entries_ignored",
+          "test_setup": {
+            "given": {
+              "users": [
+                null,
+                5,
+                "string",
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {}
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures users with additional unexpected fields are still included.",
+          "id": "user_with_city_boone_but_extra_fields_still_included",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "user_with_city_boone_but_extra_fields_still_included",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "extra": "ignored",
+                  "id": 1,
+                  "name": "A"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "extra": "ignored",
+                  "id": 1,
+                  "name": "A"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verifies city must be a string. Non-string values should be excluded.",
+          "id": "user_with_nested_city_value_string_only",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "user_with_nested_city_value_string_only",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": 123
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "B"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "City value must match exactly; space-trim mismatches are excluded.",
+          "id": "user_with_leading_or_trailing_spaces_not_included",
+          "implementation_id": "filterusersbylocationboone",
+          "name": "user_with_leading_or_trailing_spaces_not_included",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": " Boone"
+                  },
+                  "id": 1,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Boone "
+                  },
+                  "id": 2,
+                  "name": "B"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "C"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "C"
+                }
+              ]
+            },
+            "when": "filterUsersByLocationBoone is called"
+          },
+          "type": "edge"
+        }
+      ]
     }
   ],
   "component": [
@@ -1541,6 +2020,32 @@
           },
           "type": "positive",
           "update_type": "unchanged"
+        },
+        {
+          "description": "Verify index.html does not require authentication or special permissions.",
+          "id": "static_page_requires_no_permissions",
+          "implementation_id": "index_html",
+          "name": "static_page_requires_no_permissions",
+          "test_setup": {
+            "given": "A public static file with no protected routes.",
+            "then": "The page loads successfully without permission checks.",
+            "when": "Any user accesses the page."
+          },
+          "type": "positive",
+          "update_type": "add"
+        },
+        {
+          "description": "Verify system behavior when index.html is unusually large.",
+          "id": "large_file_handling_static_html",
+          "implementation_id": "index_html",
+          "name": "large_file_handling_static_html",
+          "test_setup": {
+            "given": "index.html file size is significantly larger than normal.",
+            "then": "The file still serves successfully and no backend logic is invoked.",
+            "when": "The browser loads the file."
+          },
+          "type": "edge",
+          "update_type": "add"
         }
       ]
     }
@@ -1576,7 +2081,8 @@
             "then": "Server reads CSV, converts to JSON, and returns parsed result",
             "when": "Client sends GET /api/users"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Checks error handling when users.csv is missing",
@@ -1598,7 +2104,8 @@
             "then": "Server returns 404 with error message",
             "when": "GET /api/users is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures system handles an empty CSV file gracefully",
@@ -1620,7 +2127,8 @@
             "then": "Server returns an empty array",
             "when": "GET /api/users is invoked"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures API handles parsing errors from invalid CSV",
@@ -1642,7 +2150,8 @@
             "then": "Server returns a 500 error",
             "when": "GET /api/users is executed"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures API handles large datasets without performance issues",
@@ -1664,39 +2173,8 @@
             "then": "Server returns full parsed JSON dataset",
             "when": "GET /api/users is called"
           },
-          "type": "edge"
-        },
-        {
-          "description": "Confirms CSV storage rule that filters users by location Boone before saving",
-          "id": "tc_get_users_filtered_boone",
-          "implementation_id": "get_api_users",
-          "name": "Ensure CSV includes only users with location Boone",
-          "request_body_json": {},
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "GET",
-          "request_url": "/api/users",
-          "response_body_json": {
-            "users": [
-              {
-                "address": {
-                  "city": "Boone"
-                },
-                "email": "boone@test.com",
-                "id": 3,
-                "name": "Boone User",
-                "username": "booneu"
-              }
-            ]
-          },
-          "response_status_code": 200,
-          "test_setup": {
-            "given": "users.csv contains only users whose city equals Boone",
-            "then": "System returns only Boone users in JSON format",
-            "when": "GET /api/users is executed"
-          },
-          "type": "positive"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures API handles file-read permission errors",
@@ -1718,7 +2196,8 @@
             "then": "Server responds with 500 permission error",
             "when": "GET /api/users is requested"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Confirms endpoint does not rely on client headers for operation",
@@ -1747,7 +2226,89 @@
             "then": "Server still returns parsed JSON and ignores header issues",
             "when": "GET request is made with irrelevant or incorrect headers"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Ensures extra columns not part of original JSON are still returned since system should not transform or omit data",
+          "id": "Handle_CSV_with_extra_unexpected_columns",
+          "implementation_id": "get_api_users",
+          "name": "Handle CSV with extra unexpected columns",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "email": "u@test.com",
+                "id": 1,
+                "name": "User",
+                "unexpected_col": "value",
+                "username": "usr"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv exists and includes additional unexpected columns",
+            "then": "Server returns JSON including all columns from CSV",
+            "when": "GET /api/users is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "API should not fail if CSV is missing some fields; returns whatever is present",
+          "id": "Handle_CSV_missing_required_columns",
+          "implementation_id": "get_api_users",
+          "name": "Handle CSV missing required columns",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "id": 1
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv is missing some expected JSONPlaceholder fields",
+            "then": "Server returns JSON that reflects CSV contents",
+            "when": "GET /api/users executes"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensure endpoint correctly restricts method usage",
+          "id": "Reject_non_GET_requests",
+          "implementation_id": "get_api_users",
+          "name": "Reject non-GET requests",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Method not allowed"
+          },
+          "response_status_code": 405,
+          "test_setup": {
+            "given": "Client attempts POST to /api/users",
+            "then": "Server returns 405",
+            "when": "Request is made"
+          },
+          "type": "negative",
+          "update_type": "add"
         }
       ]
     }
