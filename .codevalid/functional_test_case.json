@@ -4,13 +4,13 @@
       "implementation_id": "main",
       "test_cases": [
         {
-          "description": "Ensures the system fetches users, converts them to CSV, and writes the resulting file. Removes outdated Boone filter reference.",
+          "description": "Ensures the system only includes users with location equal to Boone before generating the CSV.",
           "id": "fetch_users_success_with_boone_filter",
           "implementation_id": "main",
-          "name": "Fetch users and generate CSV for all returned users",
+          "name": "Fetch users, filter by Boone, and generate CSV",
           "test_setup": {
-            "given": "API returns an array of valid user objects and persistent storage is writable.",
-            "then": "A CSV file containing all users and all fields is created, and a success log is written.",
+            "given": "API returns valid users and storage is writable. Some users have location Boone.",
+            "then": "A CSV file is created containing only Boone users with all fields preserved.",
             "when": "main() is executed"
           },
           "type": "positive",
@@ -35,8 +35,8 @@
           "implementation_id": "main",
           "name": "Error when API returns non-OK response",
           "test_setup": {
-            "given": "HTTP GET request returns a non-ok status such as 500 or 404.",
-            "then": "System throws an error and no CSV file is created or modified.",
+            "given": "HTTP GET request returns status 500 or 404.",
+            "then": "System throws an error and no CSV is created or modified.",
             "when": "main() is executed"
           },
           "type": "negative",
@@ -48,35 +48,35 @@
           "implementation_id": "main",
           "name": "Error when API returns malformed JSON",
           "test_setup": {
-            "given": "API returns invalid or corrupted JSON.",
-            "then": "JSON parsing fails, an error is thrown, and no CSV file is created.",
+            "given": "API returns malformed JSON.",
+            "then": "System throws an error and no CSV is created.",
             "when": "main() is executed"
           },
           "type": "negative",
           "update_type": "unchanged"
         },
         {
-          "description": "Ensures CSV includes all fields exactly as present in the JSON object without flattening nested fields.",
+          "description": "Ensures CSV includes all fields exactly as present in the JSON object, and nested fields are stringified.",
           "id": "fetch_users_csv_generation_all_fields",
           "implementation_id": "main",
-          "name": "Validate CSV column generation for all fields",
+          "name": "Validate CSV field inclusion and stringification",
           "test_setup": {
-            "given": "API returns one or more valid users with nested fields.",
-            "then": "CSV headers match top-level fields exactly, nested fields are stringified, and rows include data for all fields.",
+            "given": "API returns valid user objects with nested fields.",
+            "then": "CSV headers match all fields and nested structures are stringified.",
             "when": "main() is executed"
           },
           "type": "positive",
           "update_type": "modify"
         },
         {
-          "description": "Verifies that the data directory is auto-created before writing the CSV file.",
+          "description": "Verifies that the system creates the data storage directory if missing.",
           "id": "fetch_users_directory_creation",
           "implementation_id": "main",
-          "name": "Ensure directory is created if missing",
+          "name": "Auto-create directory before writing CSV",
           "test_setup": {
-            "given": "Persistent storage does not contain the target data directory.",
-            "then": "Directory is created and CSV file is written to it.",
-            "when": "main() is executed with valid user data"
+            "given": "Target directory does not exist.",
+            "then": "Directory is created and CSV is written.",
+            "when": "main() is executed with valid data."
           },
           "type": "positive",
           "update_type": "modify"
@@ -85,49 +85,49 @@
           "description": "Ensures system handles filesystem write permission errors.",
           "id": "fetch_users_directory_not_writable",
           "implementation_id": "main",
-          "name": "Error when directory is not writable",
+          "name": "Error when unable to write CSV due to permissions",
           "test_setup": {
             "given": "Data directory exists but is not writable.",
-            "then": "System throws an error and the file is not created or modified.",
-            "when": "main() is executed with valid user data"
+            "then": "System throws an error and no CSV is created.",
+            "when": "main() is executed"
           },
           "type": "negative",
           "update_type": "unchanged"
         },
         {
-          "description": "Validates performance and correctness with large inputs.",
+          "description": "Validates performance and correctness with large API responses.",
           "id": "fetch_users_large_response",
           "implementation_id": "main",
           "name": "Handle very large user array",
           "test_setup": {
             "given": "API returns a very large array of users.",
-            "then": "CSV file is successfully generated with all users and fields preserved.",
+            "then": "CSV is generated with all users and fields preserved.",
             "when": "main() is executed"
           },
           "type": "edge",
           "update_type": "unchanged"
         },
         {
-          "description": "Ensures missing fields result in blank CSV cells but all detected fields across all users appear as columns.",
+          "description": "Ensures missing fields produce blank CSV cells but all fields across users are included.",
           "id": "fetch_users_missing_expected_fields",
           "implementation_id": "main",
-          "name": "Process users missing some fields",
+          "name": "Handle missing fields across users",
           "test_setup": {
-            "given": "API returns users but some records lack optional fields.",
-            "then": "CSV includes all fields present across all users, with blank cells for missing fields.",
+            "given": "API returns users missing some fields.",
+            "then": "CSV includes union of all fields and blank cells for missing ones.",
             "when": "main() is executed"
           },
           "type": "edge",
           "update_type": "modify"
         },
         {
-          "description": "Ensures existing CSV remains unchanged if API request fails before JSON is parsed.",
-          "id": "Do_not_modify_existing_CSV_when_API_fails_before_download",
+          "description": "Ensures existing CSV remains unchanged on pre-parse failure.",
+          "id": "Do_not_modify_CSV_when_API_request_fails",
           "implementation_id": "main",
-          "name": "Do not modify existing CSV when API fails before download",
+          "name": "Do not modify CSV when API request fails",
           "test_setup": {
-            "given": "An older CSV file exists and the API request fails before data is parsed.",
-            "then": "Existing CSV is not modified.",
+            "given": "Existing CSV file is present and API request fails before JSON parsing.",
+            "then": "CSV remains unchanged.",
             "when": "main() is executed"
           },
           "type": "negative",
@@ -135,54 +135,80 @@
         },
         {
           "description": "Validates overwrite behavior when CSV already exists.",
-          "id": "Ensure_CSV_is_overwritten_on_successful_run",
+          "id": "Overwrite_old_CSV_on_success",
           "implementation_id": "main",
-          "name": "Ensure CSV is overwritten on successful run",
+          "name": "Overwrite old CSV on success",
           "test_setup": {
-            "given": "API returns valid user data and an old CSV file exists.",
-            "then": "CSV file is overwritten with newly generated data.",
+            "given": "Old CSV exists and API returns valid data.",
+            "then": "Old CSV is overwritten with new content.",
             "when": "main() is executed"
           },
           "type": "positive",
           "update_type": "add"
         },
         {
-          "description": "Ensures CSV includes union of fields from users with different field sets.",
-          "id": "Handle_differing_user_object_schemas",
+          "description": "Ensures CSV contains a union of differing schema fields.",
+          "id": "Handle_differing_user_fields",
           "implementation_id": "main",
-          "name": "Handle differing user object schemas",
+          "name": "Handle differing user fields",
           "test_setup": {
-            "given": "API returns user objects with differing field sets.",
-            "then": "CSV includes all unique fields with blanks where fields are missing.",
+            "given": "API returns users with inconsistent field sets.",
+            "then": "CSV includes all unique fields and blanks for missing ones.",
             "when": "main() is executed"
           },
           "type": "edge",
           "update_type": "add"
         },
         {
-          "description": "Ensures timeout behavior is treated the same as a failed request.",
-          "id": "Skip_CSV_creation_when_network_request_times_out_h4nl",
+          "description": "Ensures timeout behaves like other failed requests.",
+          "id": "Do_not_create_CSV_on_network_timeout",
           "implementation_id": "main",
-          "name": "Skip CSV creation when network request times out",
+          "name": "Do not create CSV on network timeout",
           "test_setup": {
-            "given": "HTTP GET request times out.",
-            "then": "System signals an error and does not create or modify the CSV file.",
+            "given": "Network request times out.",
+            "then": "System errors and no CSV is created or modified.",
             "when": "main() is executed"
           },
           "type": "negative",
           "update_type": "add"
         },
         {
-          "description": "Validates that a success log entry is created after CSV is written.",
-          "id": "Ensure_log_message_on_success_tgn8",
+          "description": "Validates success logging after CSV write.",
+          "id": "Ensure_success_log_entry_is_written",
           "implementation_id": "main",
-          "name": "Ensure log message on success",
+          "name": "Ensure success log entry is written",
           "test_setup": {
-            "given": "API returns valid user data.",
-            "then": "A success log entry indicating the CSV write is produced.",
+            "given": "API returns valid data.",
+            "then": "Success log entry is created.",
             "when": "main() is executed"
           },
           "type": "positive",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensures system errors when no users match Boone filter.",
+          "id": "No_Boone_users_found",
+          "implementation_id": "main",
+          "name": "No Boone users found",
+          "test_setup": {
+            "given": "API returns valid users but none have location Boone.",
+            "then": "System signals an error and no CSV is created.",
+            "when": "main() is executed"
+          },
+          "type": "negative",
+          "update_type": "add"
+        },
+        {
+          "description": "Validates behavior when user objects are missing required base fields such as id or name.",
+          "id": "Malformed_user_object_structure",
+          "implementation_id": "main",
+          "name": "Malformed user object structure",
+          "test_setup": {
+            "given": "API returns user objects missing mandatory fields.",
+            "then": "System errors and no CSV is generated.",
+            "when": "main() is executed"
+          },
+          "type": "negative",
           "update_type": "add"
         }
       ]
