@@ -4,7 +4,7 @@
       "implementation_id": "main",
       "test_cases": [
         {
-          "description": "Ensures the system fetches users, converts them to CSV, and writes the resulting file. Boone filtering is removed.",
+          "description": "Ensures the system fetches users, converts them to CSV, and writes the resulting file. Boone filtering requirement is outdated and removed.",
           "id": "fetch_users_success_with_boone_filter",
           "implementation_id": "main",
           "name": "Fetch users and generate CSV for all returned users",
@@ -56,13 +56,13 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Checks that CSV includes all fields exactly as present in the JSON object.",
+          "description": "Checks that CSV includes all fields exactly as present in the JSON object and no fields are omitted.",
           "id": "fetch_users_csv_generation_all_fields",
           "implementation_id": "main",
-          "name": "Validate CSV column generation",
+          "name": "Validate CSV column generation for all fields",
           "test_setup": {
-            "given": "API returns one or more valid users with multiple nested fields.",
-            "then": "CSV headers match all fields exactly and rows contain values for each corresponding field.",
+            "given": "API returns one or more valid users with potentially nested fields.",
+            "then": "CSV headers match all fields exactly and rows contain values for each corresponding field, with nested fields flattened or handled per implementation.",
             "when": "main() is executed"
           },
           "type": "positive",
@@ -74,9 +74,9 @@
           "implementation_id": "main",
           "name": "Ensure directory is created if missing",
           "test_setup": {
-            "given": "Persistent storage does not yet contain the target directory.",
+            "given": "Persistent storage does not contain the target directory.",
             "then": "Directory is created and CSV file is written inside it.",
-            "when": "main() is executed with valid user data."
+            "when": "main() is executed with valid user data"
           },
           "type": "positive",
           "update_type": "modify"
@@ -108,7 +108,7 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Ensures all fields present in response are included and rows handle missing fields.",
+          "description": "Ensures missing fields result in blank CSV cells but all detected fields across all users appear as columns.",
           "id": "fetch_users_missing_expected_fields",
           "implementation_id": "main",
           "name": "Process users missing some fields",
@@ -121,8 +121,8 @@
           "update_type": "modify"
         },
         {
-          "description": "Ensures existing CSV remains unchanged if API request fails early.",
-          "id": "Do_not_modify_existing_CSV_when_API_fails_before_download",
+          "description": "Ensures existing CSV remains unchanged if API request fails before JSON is parsed.",
+          "id": "Do_not_modify_existing_CSV_when_API_fails_before_download_bw12",
           "implementation_id": "main",
           "name": "Do not modify existing CSV when API fails before download",
           "test_setup": {
@@ -135,12 +135,51 @@
         },
         {
           "description": "Validates overwrite behavior when CSV already exists.",
-          "id": "Ensure_CSV_is_overwritten_on_successful_run",
+          "id": "Ensure_CSV_is_overwritten_on_successful_run_3abc",
           "implementation_id": "main",
           "name": "Ensure CSV is overwritten on successful run",
           "test_setup": {
             "given": "API returns valid user data and an old CSV file already exists.",
             "then": "CSV file is overwritten with newly generated data.",
+            "when": "main() is executed"
+          },
+          "type": "positive",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensures system handles dynamic schema expansion when users contain different sets of fields.",
+          "id": "Error_when_user_object_schema_differs_between_records",
+          "implementation_id": "main",
+          "name": "Error when user object schema differs between records",
+          "test_setup": {
+            "given": "API returns multiple users with differing field sets.",
+            "then": "CSV includes all distinct fields across all users with blanks where fields are missing.",
+            "when": "main() is executed"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensures timeout behavior is treated the same as a failed request.",
+          "id": "Skip_CSV_creation_when_network_request_times_out",
+          "implementation_id": "main",
+          "name": "Skip CSV creation when network request times out",
+          "test_setup": {
+            "given": "HTTP GET to USERS_URL times out.",
+            "then": "System signals an error and CSV file is not created or modified.",
+            "when": "main() is executed"
+          },
+          "type": "negative",
+          "update_type": "add"
+        },
+        {
+          "description": "Validates that a success log entry is created after CSV is written.",
+          "id": "Ensure_log_message_on_success",
+          "implementation_id": "main",
+          "name": "Ensure log message on success",
+          "test_setup": {
+            "given": "API returns valid user data.",
+            "then": "A success log entry indicating successful write is produced.",
             "when": "main() is executed"
           },
           "type": "positive",
@@ -179,7 +218,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures commas inside string values are escaped properly for CSV formatting.",
@@ -209,7 +249,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures quotes inside fields are escaped correctly.",
@@ -239,7 +280,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures missing optional fields still produce valid CSV output.",
@@ -268,7 +310,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures null values are converted into empty strings.",
@@ -298,31 +341,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "edge"
-        },
-        {
-          "description": "Ensures users not located in Boone are excluded before conversion to CSV.",
-          "id": "tc_user_to_row_non_boone_filtered_out",
-          "implementation_id": "usertorow",
-          "name": "User location not Boone should be filtered before conversion",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "New York"
-                },
-                "email": "nboone@example.com",
-                "id": 5,
-                "name": "Not Boone Resident",
-                "username": "nboone"
-              }
-            },
-            "then": {
-              "result": "user_filtered_out"
-            },
-            "when": "userToRow(user) is called after filter check"
-          },
-          "type": "negative"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures empty user object results in empty CSV fields for all required columns.",
@@ -344,7 +364,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "modify"
         },
         {
           "description": "Ensures incorrect types are stringified safely.",
@@ -378,7 +399,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures nested structures are included intact in CSV as JSON.",
@@ -413,7 +435,8 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures function consistently returns fields in the expected order.",
@@ -443,7 +466,74 @@
             },
             "when": "userToRow(user) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Ensures function includes unexpected additional fields when present.",
+          "id": "Handle_additional_top_level_JSON_fields_automatically",
+          "implementation_id": "usertorow",
+          "name": "Handle additional top-level JSON fields automatically",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone"
+                },
+                "email": "ext@example.com",
+                "extraField": "extraValue",
+                "id": 9,
+                "name": "Extended User",
+                "username": "ext"
+              }
+            },
+            "then": {
+              "result": [
+                "9",
+                "Extended User",
+                "ext",
+                "ext@example.com",
+                "{\"city\":\"Boone\"}",
+                "extraValue"
+              ]
+            },
+            "when": "userToRow(user) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensures undefined fields are output as empty CSV fields.",
+          "id": "Handle_undefined_field_values",
+          "implementation_id": "usertorow",
+          "name": "Handle undefined field values",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone"
+                },
+                "email": null,
+                "id": 10,
+                "name": "Undefined User",
+                "undefinedField": null,
+                "username": "undef"
+              }
+            },
+            "then": {
+              "result": [
+                "10",
+                "Undefined User",
+                "undef",
+                "",
+                "{\"city\":\"Boone\"}",
+                ""
+              ]
+            },
+            "when": "userToRow(user) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
         }
       ]
     },
@@ -477,10 +567,10 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Value containing quotes should be wrapped in quotes and internal quotes doubled.",
+          "description": "Value containing quotes should be quoted and internal quotes doubled.",
           "id": "escape_csv_003_contains_quote",
           "implementation_id": "escapecsvfield",
-          "name": "Value containing a quote",
+          "name": "Value containing quote characters",
           "test_setup": {
             "given": "value = hello\"world",
             "then": "\"hello\"\"world\"",
@@ -503,10 +593,10 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Value containing commas, quotes, and newlines should be wrapped in quotes with internal quotes escaped.",
+          "description": "Value containing commas, quotes, and newlines should be wrapped in quotes and internal quotes doubled.",
           "id": "escape_csv_005_contains_multiple_special_chars",
           "implementation_id": "escapecsvfield",
-          "name": "Value containing commas, quotes, and newlines",
+          "name": "Multiple special characters",
           "test_setup": {
             "given": "value = \"hello,\\nwo\"rld\"",
             "then": "\"\"hello,\\nwo\"\"rld\"\"\"",
@@ -516,10 +606,10 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Empty string should return empty string, not quoted.",
+          "description": "Empty string should return empty string without quoting.",
           "id": "escape_csv_006_empty_string",
           "implementation_id": "escapecsvfield",
-          "name": "Empty string value",
+          "name": "Empty string returns empty string",
           "test_setup": {
             "given": "value = \"\"",
             "then": "",
@@ -529,10 +619,10 @@
           "update_type": "modify"
         },
         {
-          "description": "Value containing only quotes should be wrapped and internal quotes doubled.",
+          "description": "Value containing only quotes should be quoted and internal quotes doubled.",
           "id": "escape_csv_007_only_quotes",
           "implementation_id": "escapecsvfield",
-          "name": "String containing only quotes",
+          "name": "Only quotes",
           "test_setup": {
             "given": "value = \"\"\"\"\"\"",
             "then": "\"\"\"\"\"\"\"\"\"\"\"",
@@ -545,7 +635,7 @@
           "description": "String containing only commas should be wrapped in quotes.",
           "id": "escape_csv_008_only_commas",
           "implementation_id": "escapecsvfield",
-          "name": "String containing only commas",
+          "name": "Only commas",
           "test_setup": {
             "given": "value = \",,,\"",
             "then": "\",,,\"",
@@ -555,10 +645,10 @@
           "update_type": "modify"
         },
         {
-          "description": "Non-string values should be converted to strings.",
+          "description": "Non\u2011string values should be converted to string.",
           "id": "escape_csv_009_integer_input",
           "implementation_id": "escapecsvfield",
-          "name": "Integer input converted to string",
+          "name": "Integer input",
           "test_setup": {
             "given": "value = 12345",
             "then": "12345",
@@ -568,10 +658,10 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Null should convert to empty string.",
+          "description": "Null should return empty string.",
           "id": "escape_csv_010_null_input",
           "implementation_id": "escapecsvfield",
-          "name": "Null value",
+          "name": "Null converts to empty string",
           "test_setup": {
             "given": "value = null",
             "then": "",
@@ -581,10 +671,10 @@
           "update_type": "modify"
         },
         {
-          "description": "Undefined should convert to empty string.",
+          "description": "Undefined should return empty string.",
           "id": "escape_csv_011_undefined_input",
           "implementation_id": "escapecsvfield",
-          "name": "Undefined value",
+          "name": "Undefined converts to empty string",
           "test_setup": {
             "given": "value = undefined",
             "then": "",
@@ -594,10 +684,10 @@
           "update_type": "modify"
         },
         {
-          "description": "Unicode characters should not trigger quoting unless they contain special CSV characters.",
+          "description": "Unicode characters should not trigger quoting unless they contain special characters.",
           "id": "escape_csv_012_special_unicode_characters",
           "implementation_id": "escapecsvfield",
-          "name": "Unicode characters",
+          "name": "Unicode allowed",
           "test_setup": {
             "given": "value = \"\u3053\u3093\u306b\u3061\u306f\"",
             "then": "\u3053\u3093\u306b\u3061\u306f",
@@ -610,7 +700,7 @@
           "description": "Carriage return should trigger wrapping in quotes.",
           "id": "escape_csv_013_multiline_with_carriage_return",
           "implementation_id": "escapecsvfield",
-          "name": "Value with carriage return",
+          "name": "Carriage return triggers quoting",
           "test_setup": {
             "given": "value = \"hello\rworld\"",
             "then": "\"hello\rworld\"",
@@ -620,10 +710,10 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Leading/trailing spaces should not cause quoting unless combined with special characters.",
-          "id": "Leading_and_trailing_spaces",
+          "description": "Leading or trailing spaces alone should not trigger quoting.",
+          "id": "Leading_trailing_spaces",
           "implementation_id": "escapecsvfield",
-          "name": "Leading and trailing spaces",
+          "name": "Leading/trailing spaces",
           "test_setup": {
             "given": "value = \"  spaced value  \"",
             "then": "  spaced value  ",
@@ -633,10 +723,10 @@
           "update_type": "add"
         },
         {
-          "description": "Tab should not cause quoting unless other special characters exist.",
-          "id": "Tab_character_inside_string",
+          "description": "Tab characters should not trigger quoting.",
+          "id": "Tab_inside_string",
           "implementation_id": "escapecsvfield",
-          "name": "Tab character inside string",
+          "name": "Tab inside string",
           "test_setup": {
             "given": "value = \"hello\tworld\"",
             "then": "hello\tworld",
@@ -647,7 +737,7 @@
         },
         {
           "description": "Boolean values should be converted to strings.",
-          "id": "Boolean_input",
+          "id": "Boolean_input_9ucn",
           "implementation_id": "escapecsvfield",
           "name": "Boolean input",
           "test_setup": {
@@ -656,6 +746,58 @@
             "when": "escapeCsvField(value) is called"
           },
           "type": "positive",
+          "update_type": "add"
+        },
+        {
+          "description": "Semicolon should not trigger quoting.",
+          "id": "String_containing_semicolon",
+          "implementation_id": "escapecsvfield",
+          "name": "String containing semicolon",
+          "test_setup": {
+            "given": "value = \"hello;world\"",
+            "then": "hello;world",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Whitespace mixing should not trigger quoting unless CSV special characters are present.",
+          "id": "String_with_mixed_whitespace_but_no_special_CSV_chars",
+          "implementation_id": "escapecsvfield",
+          "name": "String with mixed whitespace but no special CSV chars",
+          "test_setup": {
+            "given": "value = \"hello \t world\"",
+            "then": "hello \t world",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Long strings should be returned unchanged unless special characters are included.",
+          "id": "Very_long_string_without_special_chars",
+          "implementation_id": "escapecsvfield",
+          "name": "Very long string without special chars",
+          "test_setup": {
+            "given": "value = T.repeat(5000)",
+            "then": "T.repeat(5000)",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Long strings containing commas must still be quoted.",
+          "id": "Very_long_string_with_commas",
+          "implementation_id": "escapecsvfield",
+          "name": "Very long string with commas",
+          "test_setup": {
+            "given": "value = T.repeat(2000) + \",\" + T.repeat(2000)",
+            "then": "\"\" + T.repeat(2000) + \",\" + T.repeat(2000) + \"\"",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "edge",
           "update_type": "add"
         }
       ]
@@ -679,12 +821,12 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Ensure index.html does not trigger the user\u2011fetch or CSV flow.",
+          "description": "Ensure index.html does not trigger any API requests, including JSONPlaceholder or backend routes.",
           "id": "tc_no_api_calls_02",
           "implementation_id": "index_html",
           "name": "does_not_initiate_api_requests",
           "test_setup": {
-            "given": "The index.html file contains no scripts initiating fetch calls.",
+            "given": "The index.html file contains no scripts initiating fetch or AJAX calls.",
             "then": "No HTTP GET requests to any backend or JSONPlaceholder endpoints are triggered.",
             "when": "The page loads in the browser."
           },
@@ -705,12 +847,12 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Ensure that interactions do not change any state since the page is static.",
+          "description": "Ensure that interactions do not change any client\u2011side or server\u2011side state since the page is static.",
           "id": "tc_no_state_changes_04",
           "implementation_id": "index_html",
           "name": "no_state_or_dom_changes_on_interaction",
           "test_setup": {
-            "given": "Static HTML page with no stateful components.",
+            "given": "Static HTML page with no stateful components or scripts.",
             "then": "No DOM or application state changes occur.",
             "when": "A user clicks or interacts with any text or element."
           },
@@ -767,7 +909,7 @@
             "when": "The file is inspected."
           },
           "type": "positive",
-          "update_type": "add"
+          "update_type": "unchanged"
         },
         {
           "description": "Verify that index.html is served with correct MIME type.",
@@ -780,7 +922,7 @@
             "when": "The user requests index.html."
           },
           "type": "edge",
-          "update_type": "add"
+          "update_type": "unchanged"
         },
         {
           "description": "Verify server behavior when index.html becomes syntactically malformed.",
@@ -789,10 +931,36 @@
           "name": "handles_malformed_html_gracefully",
           "test_setup": {
             "given": "index.html contains broken or malformed markup.",
-            "then": "Browser renders the page partially but server still serves file without backend processing.",
+            "then": "Browser renders partial content but server still serves the file without backend processing.",
             "when": "The page loads."
           },
           "type": "negative",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Ensure index.html does not load dynamic assets such as JSON, XML, CSV, or dynamic HTML fragments.",
+          "id": "forbids_any_dynamic_asset_loading",
+          "implementation_id": "index_html",
+          "name": "forbids_any_dynamic_asset_loading",
+          "test_setup": {
+            "given": "Static HTML with no dynamic inclusion.",
+            "then": "No secondary resource requests occur except CSS or images.",
+            "when": "The browser loads the page."
+          },
+          "type": "negative",
+          "update_type": "add"
+        },
+        {
+          "description": "Verify index.html does not initiate filtering of user data based on 'Boone'.",
+          "id": "does_not_trigger_user_filtering_logic",
+          "implementation_id": "index_html",
+          "name": "does_not_trigger_user_filtering_logic",
+          "test_setup": {
+            "given": "Filtering is a backend-only responsibility.",
+            "then": "No filtering or data transformation logic executes.",
+            "when": "index.html loads."
+          },
+          "type": "positive",
           "update_type": "add"
         }
       ]
