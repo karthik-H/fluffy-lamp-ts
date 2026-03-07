@@ -2,8 +2,8 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "The referenced file does not exist in the repository. No UI is implemented.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "File exists but contains no UI or logic related to fetching users or CSV functionality.",
+        "change_type": "unchanged",
         "file_path": "public/index.html",
         "id": "index_html",
         "name": "index.html",
@@ -11,51 +11,61 @@
         "type": "component"
       },
       {
-        "How_is_it_connected_to_implementation": "The referenced endpoint file does not exist in the repository. No backend API exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Implements the backend endpoint that reads the generated CSV file, parses it, and returns user data as JSON.",
+        "change_type": "updated",
         "file_path": "src/server.ts",
         "id": "get_api_users",
         "name": "GET /api/users",
-        "pseudo_code": "No implementation present",
+        "pseudo_code": "IF users.csv does not exist\n    RETURN 404 error\nREAD users.csv content\nPARSE CSV into JSON via csvToJson()\nRETURN parsed JSON response",
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "The referenced function file does not exist in the repository. No data-fetch logic is implemented.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Implements the HTTP GET request to the JSONPlaceholder API, converts data to CSV, and writes it to persistent storage.",
+        "change_type": "updated",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main()",
-        "pseudo_code": "No implementation present",
+        "pseudo_code": "SEND HTTP GET request to USERS_URL\nIF response is not OK\n    THROW error\nPARSE JSON array of users\nBUILD CSV headers\nFOR each user\n    CONVERT to CSV row using userToRow()\nJOIN rows into CSV string\nCREATE data directory if missing\nWRITE CSV file to disk",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "The referenced function file does not exist in the repository. No CSV transformation logic exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Converts each user object into a CSV row including id, name, username, email, and address fields.",
+        "change_type": "updated",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow()",
-        "pseudo_code": "No implementation present",
+        "pseudo_code": "RETURN array containing:\n    id, name, username, email,\n    street, city, zipcode, phone, website\nESCAPE each field using escapeCsvField()",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "The referenced function file does not exist in the repository. No CSV escaping logic exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Formats and escapes fields to be compliant with CSV specifications.",
+        "change_type": "updated",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
         "name": "escapeCsvField()",
-        "pseudo_code": "No implementation present",
+        "pseudo_code": "CONVERT value to string\nIF value contains comma, quote, or newline\n    WRAP in quotes and escape internal quotes\nRETURN processed string",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Parses saved CSV and converts it back into structured JSON for the /api/users endpoint.",
+        "change_type": "",
+        "file_path": "src/server.ts",
+        "id": "csvtojson",
+        "name": "csvToJson()",
+        "pseudo_code": "SPLIT CSV string into lines\nEXTRACT header row\nFOR each remaining line\n    PARSE CSV fields\n    MAP fields to header names\nRETURN array of JSON objects",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Low\u2011level CSV parser used by csvToJson() to properly handle quoted fields.",
+        "change_type": "",
+        "file_path": "src/server.ts",
+        "id": "parsecsvline",
+        "name": "parseCsvLine()",
+        "pseudo_code": "INITIALIZE result array\nLOOP through characters\n    TRACK quotes and build field string\nPUSH final field to result\nRETURN result list",
         "type": "function"
       }
     ],
     "missing_implementations": [
-      "System sends an HTTP GET request to https://jsonplaceholder.typicode.com/users.",
-      "System receives an array of user objects in the response.",
-      "Each user object in the response is included as a row in the resulting CSV file.",
-      "CSV file contains columns corresponding to each field in the user JSON object (e.g., id, name, username, email, etc.).",
-      "CSV column names are identical to the field names in the JSON object.",
-      "CSV file is saved to persistent storage and is accessible for later retrieval.",
-      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error.",
-      "No user data is omitted or transformed; all fields from the API response are included.",
       "before saving information check filter for data with location as Boone"
     ]
   }
