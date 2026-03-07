@@ -4,13 +4,13 @@
       "implementation_id": "main",
       "test_cases": [
         {
-          "description": "Ensures the system fetches users, converts them to CSV, and writes the resulting file. Boone filtering requirement is outdated and removed.",
+          "description": "Ensures the system fetches users, converts them to CSV, and writes the resulting file. Removes outdated Boone filter reference.",
           "id": "fetch_users_success_with_boone_filter",
           "implementation_id": "main",
           "name": "Fetch users and generate CSV for all returned users",
           "test_setup": {
-            "given": "API returns an array of user objects. Persistent storage is writable.",
-            "then": "CSV file is created containing all returned users and all fields, and success is logged.",
+            "given": "API returns an array of valid user objects and persistent storage is writable.",
+            "then": "A CSV file containing all users and all fields is created, and a success log is written.",
             "when": "main() is executed"
           },
           "type": "positive",
@@ -56,26 +56,26 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Checks that CSV includes all fields exactly as present in the JSON object and no fields are omitted.",
+          "description": "Ensures CSV includes all fields exactly as present in the JSON object without flattening nested fields.",
           "id": "fetch_users_csv_generation_all_fields",
           "implementation_id": "main",
           "name": "Validate CSV column generation for all fields",
           "test_setup": {
-            "given": "API returns one or more valid users with potentially nested fields.",
-            "then": "CSV headers match all fields exactly and rows contain values for each corresponding field, with nested fields flattened or handled per implementation.",
+            "given": "API returns one or more valid users with nested fields.",
+            "then": "CSV headers match top-level fields exactly, nested fields are stringified, and rows include data for all fields.",
             "when": "main() is executed"
           },
           "type": "positive",
           "update_type": "modify"
         },
         {
-          "description": "Verifies that the data directory is auto-created before writing CSV.",
+          "description": "Verifies that the data directory is auto-created before writing the CSV file.",
           "id": "fetch_users_directory_creation",
           "implementation_id": "main",
           "name": "Ensure directory is created if missing",
           "test_setup": {
-            "given": "Persistent storage does not contain the target directory.",
-            "then": "Directory is created and CSV file is written inside it.",
+            "given": "Persistent storage does not contain the target data directory.",
+            "then": "Directory is created and CSV file is written to it.",
             "when": "main() is executed with valid user data"
           },
           "type": "positive",
@@ -88,8 +88,8 @@
           "name": "Error when directory is not writable",
           "test_setup": {
             "given": "Data directory exists but is not writable.",
-            "then": "System throws an error and file is not created or modified.",
-            "when": "main() is executed with valid user data."
+            "then": "System throws an error and the file is not created or modified.",
+            "when": "main() is executed with valid user data"
           },
           "type": "negative",
           "update_type": "unchanged"
@@ -101,7 +101,7 @@
           "name": "Handle very large user array",
           "test_setup": {
             "given": "API returns a very large array of users.",
-            "then": "CSV file is successfully generated with all users and all fields preserved.",
+            "then": "CSV file is successfully generated with all users and fields preserved.",
             "when": "main() is executed"
           },
           "type": "edge",
@@ -114,7 +114,7 @@
           "name": "Process users missing some fields",
           "test_setup": {
             "given": "API returns users but some records lack optional fields.",
-            "then": "CSV includes all fields present in the combined user schema and blank values for missing fields.",
+            "then": "CSV includes all fields present across all users, with blank cells for missing fields.",
             "when": "main() is executed"
           },
           "type": "edge",
@@ -122,7 +122,7 @@
         },
         {
           "description": "Ensures existing CSV remains unchanged if API request fails before JSON is parsed.",
-          "id": "Do_not_modify_existing_CSV_when_API_fails_before_download_bw12",
+          "id": "Do_not_modify_existing_CSV_when_API_fails_before_download",
           "implementation_id": "main",
           "name": "Do not modify existing CSV when API fails before download",
           "test_setup": {
@@ -135,11 +135,11 @@
         },
         {
           "description": "Validates overwrite behavior when CSV already exists.",
-          "id": "Ensure_CSV_is_overwritten_on_successful_run_3abc",
+          "id": "Ensure_CSV_is_overwritten_on_successful_run",
           "implementation_id": "main",
           "name": "Ensure CSV is overwritten on successful run",
           "test_setup": {
-            "given": "API returns valid user data and an old CSV file already exists.",
+            "given": "API returns valid user data and an old CSV file exists.",
             "then": "CSV file is overwritten with newly generated data.",
             "when": "main() is executed"
           },
@@ -147,13 +147,13 @@
           "update_type": "add"
         },
         {
-          "description": "Ensures system handles dynamic schema expansion when users contain different sets of fields.",
-          "id": "Error_when_user_object_schema_differs_between_records",
+          "description": "Ensures CSV includes union of fields from users with different field sets.",
+          "id": "Handle_differing_user_object_schemas",
           "implementation_id": "main",
-          "name": "Error when user object schema differs between records",
+          "name": "Handle differing user object schemas",
           "test_setup": {
-            "given": "API returns multiple users with differing field sets.",
-            "then": "CSV includes all distinct fields across all users with blanks where fields are missing.",
+            "given": "API returns user objects with differing field sets.",
+            "then": "CSV includes all unique fields with blanks where fields are missing.",
             "when": "main() is executed"
           },
           "type": "edge",
@@ -161,12 +161,12 @@
         },
         {
           "description": "Ensures timeout behavior is treated the same as a failed request.",
-          "id": "Skip_CSV_creation_when_network_request_times_out",
+          "id": "Skip_CSV_creation_when_network_request_times_out_h4nl",
           "implementation_id": "main",
           "name": "Skip CSV creation when network request times out",
           "test_setup": {
-            "given": "HTTP GET to USERS_URL times out.",
-            "then": "System signals an error and CSV file is not created or modified.",
+            "given": "HTTP GET request times out.",
+            "then": "System signals an error and does not create or modify the CSV file.",
             "when": "main() is executed"
           },
           "type": "negative",
@@ -174,12 +174,12 @@
         },
         {
           "description": "Validates that a success log entry is created after CSV is written.",
-          "id": "Ensure_log_message_on_success",
+          "id": "Ensure_log_message_on_success_tgn8",
           "implementation_id": "main",
           "name": "Ensure log message on success",
           "test_setup": {
             "given": "API returns valid user data.",
-            "then": "A success log entry indicating successful write is produced.",
+            "then": "A success log entry indicating the CSV write is produced.",
             "when": "main() is executed"
           },
           "type": "positive",
@@ -345,22 +345,16 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Ensures empty user object results in empty CSV fields for all required columns.",
+          "description": "Ensures empty user object results in an empty CSV row since there are no fields to serialize.",
           "id": "tc_user_to_row_empty_user_object",
           "implementation_id": "usertorow",
-          "name": "Empty user object",
+          "name": "Empty user object produces no fields",
           "test_setup": {
             "given": {
               "user": {}
             },
             "then": {
-              "result": [
-                "",
-                "",
-                "",
-                "",
-                ""
-              ]
+              "result": []
             },
             "when": "userToRow(user) is called"
           },
@@ -500,7 +494,7 @@
             "when": "userToRow(user) is called"
           },
           "type": "edge",
-          "update_type": "add"
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures undefined fields are output as empty CSV fields.",
@@ -528,6 +522,37 @@
                 "",
                 "{\"city\":\"Boone\"}",
                 ""
+              ]
+            },
+            "when": "userToRow(user) is called"
+          },
+          "type": "edge",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Ensures newline characters are escaped correctly for CSV safety.",
+          "id": "Handle_user_fields_containing_newline_characters",
+          "implementation_id": "usertorow",
+          "name": "Handle user fields containing newline characters",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone"
+                },
+                "email": "ml@example.com",
+                "id": 11,
+                "name": "Multi\nLine",
+                "username": "test"
+              }
+            },
+            "then": {
+              "result": [
+                "11",
+                "\"Multi\nLine\"",
+                "test",
+                "ml@example.com",
+                "{\"city\":\"Boone\"}"
               ]
             },
             "when": "userToRow(user) is called"
@@ -912,7 +937,7 @@
           "update_type": "unchanged"
         },
         {
-          "description": "Verify that index.html is served with correct MIME type.",
+          "description": "Verify index.html is served with correct MIME type.",
           "id": "served_with_correct_content_type",
           "implementation_id": "index_html",
           "name": "served_with_correct_content_type",
@@ -948,7 +973,7 @@
             "when": "The browser loads the page."
           },
           "type": "negative",
-          "update_type": "add"
+          "update_type": "unchanged"
         },
         {
           "description": "Verify index.html does not initiate filtering of user data based on 'Boone'.",
@@ -961,7 +986,7 @@
             "when": "index.html loads."
           },
           "type": "positive",
-          "update_type": "add"
+          "update_type": "unchanged"
         }
       ]
     }

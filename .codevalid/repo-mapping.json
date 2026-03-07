@@ -2,7 +2,7 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Static frontend served by Express. It does not initiate any API requests or trigger the user\u2011fetch\u2192CSV workflow.",
+        "How_is_it_connected_to_implementation": "Static frontend served by Express. It does not initiate any API requests or trigger the user-fetch\u2192CSV workflow.",
         "change_type": "unchanged",
         "file_path": "public/index.html",
         "id": "index_html",
@@ -29,7 +29,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts each User object into a CSV\u2011safe row. All JSON fields are included and escaped.",
+        "How_is_it_connected_to_implementation": "Converts each User object into a CSV-safe row. All JSON fields are included and escaped.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
