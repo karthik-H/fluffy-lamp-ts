@@ -4,28 +4,17 @@
       "implementation_id": "main",
       "test_cases": [
         {
-          "description": "Ensures the system fetches users, filters for users with location Boone, converts them to CSV, and writes the resulting file.",
+          "description": "Ensures the system fetches users, converts them to CSV, and writes the resulting file. Boone filtering is removed.",
           "id": "fetch_users_success_with_boone_filter",
           "implementation_id": "main",
-          "name": "Fetch users and generate CSV when Boone users exist",
+          "name": "Fetch users and generate CSV for all returned users",
           "test_setup": {
-            "given": "API returns an array of user objects including at least one user whose location field equals 'Boone'. Persistent storage is writable.",
-            "then": "CSV file is created containing only Boone users, all fields from each user are included, and success is logged.",
+            "given": "API returns an array of user objects. Persistent storage is writable.",
+            "then": "CSV file is created containing all returned users and all fields, and success is logged.",
             "when": "main() is executed"
           },
-          "type": "positive"
-        },
-        {
-          "description": "Ensures that when no users match the Boone filter, the system does not create or modify the CSV file.",
-          "id": "fetch_users_success_no_boone_users",
-          "implementation_id": "main",
-          "name": "Fetch users and do not create CSV when no Boone users exist",
-          "test_setup": {
-            "given": "API returns a valid array of users but none have location Boone.",
-            "then": "No CSV file is created or modified, and an error or appropriate signal is raised.",
-            "when": "main() is executed"
-          },
-          "type": "edge"
+          "type": "positive",
+          "update_type": "modify"
         },
         {
           "description": "Validates system behavior when API returns an empty array.",
@@ -37,7 +26,8 @@
             "then": "System signals an error and does not create or modify the CSV file.",
             "when": "main() is executed"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures failure behavior when API responds with a non-200 status code.",
@@ -49,7 +39,8 @@
             "then": "System throws an error and no CSV file is created or modified.",
             "when": "main() is executed"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures system handles JSON parsing errors safely.",
@@ -61,7 +52,8 @@
             "then": "JSON parsing fails, an error is thrown, and no CSV file is created.",
             "when": "main() is executed"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Checks that CSV includes all fields exactly as present in the JSON object.",
@@ -69,11 +61,12 @@
           "implementation_id": "main",
           "name": "Validate CSV column generation",
           "test_setup": {
-            "given": "API returns one or more valid Boone users with multiple nested fields.",
+            "given": "API returns one or more valid users with multiple nested fields.",
             "then": "CSV headers match all fields exactly and rows contain values for each corresponding field.",
             "when": "main() is executed"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "modify"
         },
         {
           "description": "Verifies that the data directory is auto-created before writing CSV.",
@@ -83,9 +76,10 @@
           "test_setup": {
             "given": "Persistent storage does not yet contain the target directory.",
             "then": "Directory is created and CSV file is written inside it.",
-            "when": "main() is executed with valid Boone-filtered results."
+            "when": "main() is executed with valid user data."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "modify"
         },
         {
           "description": "Ensures system handles filesystem write permission errors.",
@@ -95,9 +89,10 @@
           "test_setup": {
             "given": "Data directory exists but is not writable.",
             "then": "System throws an error and file is not created or modified.",
-            "when": "main() is executed with valid Boone users."
+            "when": "main() is executed with valid user data."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Validates performance and correctness with large inputs.",
@@ -105,23 +100,51 @@
           "implementation_id": "main",
           "name": "Handle very large user array",
           "test_setup": {
-            "given": "API returns a very large array of users including Boone users.",
-            "then": "CSV file is successfully generated with all matching users and all fields preserved.",
+            "given": "API returns a very large array of users.",
+            "then": "CSV file is successfully generated with all users and all fields preserved.",
             "when": "main() is executed"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
-          "description": "Ensures all fields present in response are included and no assumptions break CSV formatting.",
+          "description": "Ensures all fields present in response are included and rows handle missing fields.",
           "id": "fetch_users_missing_expected_fields",
           "implementation_id": "main",
           "name": "Process users missing some fields",
           "test_setup": {
-            "given": "API returns Boone users but some records lack optional fields like phone or website.",
-            "then": "CSV includes only the fields present across the JSON structure and rows include blanks where fields are missing.",
+            "given": "API returns users but some records lack optional fields.",
+            "then": "CSV includes all fields present in the combined user schema and blank values for missing fields.",
             "when": "main() is executed"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "modify"
+        },
+        {
+          "description": "Ensures existing CSV remains unchanged if API request fails early.",
+          "id": "Do_not_modify_existing_CSV_when_API_fails_before_download",
+          "implementation_id": "main",
+          "name": "Do not modify existing CSV when API fails before download",
+          "test_setup": {
+            "given": "An older CSV file exists and the API request fails before data is parsed.",
+            "then": "Existing CSV is not modified.",
+            "when": "main() is executed"
+          },
+          "type": "negative",
+          "update_type": "add"
+        },
+        {
+          "description": "Validates overwrite behavior when CSV already exists.",
+          "id": "Ensure_CSV_is_overwritten_on_successful_run",
+          "implementation_id": "main",
+          "name": "Ensure CSV is overwritten on successful run",
+          "test_setup": {
+            "given": "API returns valid user data and an old CSV file already exists.",
+            "then": "CSV file is overwritten with newly generated data.",
+            "when": "main() is executed"
+          },
+          "type": "positive",
+          "update_type": "add"
         }
       ]
     },
@@ -437,7 +460,8 @@
             "then": "helloWorld",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Value containing commas should be wrapped in quotes.",
@@ -449,19 +473,21 @@
             "then": "\"hello,world\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
-          "description": "Value containing quotes should be wrapped in quotes and quotes inside should be doubled.",
+          "description": "Value containing quotes should be wrapped in quotes and internal quotes doubled.",
           "id": "escape_csv_003_contains_quote",
           "implementation_id": "escapecsvfield",
           "name": "Value containing a quote",
           "test_setup": {
             "given": "value = hello\"world",
-            "then": "\"hello\"\"world\"\"\"",
+            "then": "\"hello\"\"world\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "modify"
         },
         {
           "description": "Value containing newline should be wrapped in quotes.",
@@ -473,10 +499,11 @@
             "then": "\"hello\nworld\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
-          "description": "Value containing any and all special characters should be wrapped in quotes and quotes inside escaped.",
+          "description": "Value containing commas, quotes, and newlines should be wrapped in quotes with internal quotes escaped.",
           "id": "escape_csv_005_contains_multiple_special_chars",
           "implementation_id": "escapecsvfield",
           "name": "Value containing commas, quotes, and newlines",
@@ -485,46 +512,50 @@
             "then": "\"\"hello,\\nwo\"\"rld\"\"\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
-          "description": "Empty string should not be modified.",
+          "description": "Empty string should return empty string, not quoted.",
           "id": "escape_csv_006_empty_string",
           "implementation_id": "escapecsvfield",
           "name": "Empty string value",
           "test_setup": {
             "given": "value = \"\"",
-            "then": "\"\"",
+            "then": "",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "modify"
         },
         {
-          "description": "All quotes should be escaped and value wrapped in quotes.",
+          "description": "Value containing only quotes should be wrapped and internal quotes doubled.",
           "id": "escape_csv_007_only_quotes",
           "implementation_id": "escapecsvfield",
           "name": "String containing only quotes",
           "test_setup": {
             "given": "value = \"\"\"\"\"\"",
-            "then": "\"\"\"\"\"\"\"\"\"\"",
+            "then": "\"\"\"\"\"\"\"\"\"\"\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "modify"
         },
         {
-          "description": "Value should be wrapped in quotes.",
+          "description": "String containing only commas should be wrapped in quotes.",
           "id": "escape_csv_008_only_commas",
           "implementation_id": "escapecsvfield",
           "name": "String containing only commas",
           "test_setup": {
             "given": "value = \",,,\"",
-            "then": "\" ,,, \"",
+            "then": "\",,,\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "modify"
         },
         {
-          "description": "Function should treat non-string values as strings.",
+          "description": "Non-string values should be converted to strings.",
           "id": "escape_csv_009_integer_input",
           "implementation_id": "escapecsvfield",
           "name": "Integer input converted to string",
@@ -533,34 +564,37 @@
             "then": "12345",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
-          "description": "Null value should return null or empty string depending on implementation.",
+          "description": "Null should convert to empty string.",
           "id": "escape_csv_010_null_input",
           "implementation_id": "escapecsvfield",
           "name": "Null value",
           "test_setup": {
             "given": "value = null",
-            "then": "null",
+            "then": "",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "modify"
         },
         {
-          "description": "Undefined should be returned unchanged or become an empty string.",
+          "description": "Undefined should convert to empty string.",
           "id": "escape_csv_011_undefined_input",
           "implementation_id": "escapecsvfield",
           "name": "Undefined value",
           "test_setup": {
             "given": "value = undefined",
-            "then": "undefined",
+            "then": "",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "modify"
         },
         {
-          "description": "Unicode alone should not trigger quoting.",
+          "description": "Unicode characters should not trigger quoting unless they contain special CSV characters.",
           "id": "escape_csv_012_special_unicode_characters",
           "implementation_id": "escapecsvfield",
           "name": "Unicode characters",
@@ -569,7 +603,8 @@
             "then": "\u3053\u3093\u306b\u3061\u306f",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Carriage return should trigger wrapping in quotes.",
@@ -581,7 +616,47 @@
             "then": "\"hello\rworld\"",
             "when": "escapeCsvField(value) is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Leading/trailing spaces should not cause quoting unless combined with special characters.",
+          "id": "Leading_and_trailing_spaces",
+          "implementation_id": "escapecsvfield",
+          "name": "Leading and trailing spaces",
+          "test_setup": {
+            "given": "value = \"  spaced value  \"",
+            "then": "  spaced value  ",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Tab should not cause quoting unless other special characters exist.",
+          "id": "Tab_character_inside_string",
+          "implementation_id": "escapecsvfield",
+          "name": "Tab character inside string",
+          "test_setup": {
+            "given": "value = \"hello\tworld\"",
+            "then": "hello\tworld",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Boolean values should be converted to strings.",
+          "id": "Boolean_input",
+          "implementation_id": "escapecsvfield",
+          "name": "Boolean input",
+          "test_setup": {
+            "given": "value = true",
+            "then": "true",
+            "when": "escapeCsvField(value) is called"
+          },
+          "type": "positive",
+          "update_type": "add"
         }
       ]
     }
@@ -600,10 +675,11 @@
             "then": "The static HTML content is displayed with no missing elements or render failures.",
             "when": "The user loads the root URL in the browser."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
-          "description": "Ensure index.html does not trigger the user-fetch or CSV flow.",
+          "description": "Ensure index.html does not trigger the user\u2011fetch or CSV flow.",
           "id": "tc_no_api_calls_02",
           "implementation_id": "index_html",
           "name": "does_not_initiate_api_requests",
@@ -612,7 +688,8 @@
             "then": "No HTTP GET requests to any backend or JSONPlaceholder endpoints are triggered.",
             "when": "The page loads in the browser."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Verify the page contains no UI elements that perform actions related to user-fetch or CSV creation.",
@@ -624,7 +701,8 @@
             "then": "No actions occur because no interactive logic is present.",
             "when": "The user attempts to interact with visible UI."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensure that interactions do not change any state since the page is static.",
@@ -632,11 +710,12 @@
           "implementation_id": "index_html",
           "name": "no_state_or_dom_changes_on_interaction",
           "test_setup": {
-            "given": "Static HTML page with no stateful React component.",
+            "given": "Static HTML page with no stateful components.",
             "then": "No DOM or application state changes occur.",
             "when": "A user clicks or interacts with any text or element."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Confirm that loading index.html does not cause CSV generation, filtering, or persistence operations.",
@@ -644,11 +723,12 @@
           "implementation_id": "index_html",
           "name": "does_not_trigger_backend_csv_generation_flow",
           "test_setup": {
-            "given": "A backend capable of user-fetch and CSV creation.",
-            "then": "Backend endpoints for user-fetch, filtering by location Boone, and CSV creation remain untouched.",
+            "given": "A backend capable of user-fetch, filtering by 'Boone', and CSV creation.",
+            "then": "No backend endpoints related to user-fetch or CSV processing are triggered.",
             "when": "Only index.html is requested."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Verify behavior when index.html is missing or inaccessible.",
@@ -660,7 +740,8 @@
             "then": "Server returns an HTTP 404 or 500 error and no UI content is displayed.",
             "when": "The user navigates to the root URL."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensure the served HTML is unchanged and not modified by runtime logic.",
@@ -669,10 +750,50 @@
           "name": "displays_static_content_exactly_as_written",
           "test_setup": {
             "given": "Static index.html with fixed markup.",
-            "then": "The rendered content matches the source exactly without injected dynamic elements.",
+            "then": "The rendered content matches the source exactly with no injected dynamic elements.",
             "when": "The page loads."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Verify that no inline or external JavaScript is included that could trigger backend flows.",
+          "id": "no_inline_or_external_scripts_present",
+          "implementation_id": "index_html",
+          "name": "no_inline_or_external_scripts_present",
+          "test_setup": {
+            "given": "The index.html file.",
+            "then": "The document contains no <script> tags of any kind.",
+            "when": "The file is inspected."
+          },
+          "type": "positive",
+          "update_type": "add"
+        },
+        {
+          "description": "Verify that index.html is served with correct MIME type.",
+          "id": "served_with_correct_content_type",
+          "implementation_id": "index_html",
+          "name": "served_with_correct_content_type",
+          "test_setup": {
+            "given": "The server serving static assets.",
+            "then": "The response Content-Type header is 'text/html'.",
+            "when": "The user requests index.html."
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Verify server behavior when index.html becomes syntactically malformed.",
+          "id": "handles_malformed_html_gracefully",
+          "implementation_id": "index_html",
+          "name": "handles_malformed_html_gracefully",
+          "test_setup": {
+            "given": "index.html contains broken or malformed markup.",
+            "then": "Browser renders the page partially but server still serves file without backend processing.",
+            "when": "The page loads."
+          },
+          "type": "negative",
+          "update_type": "add"
         }
       ]
     }

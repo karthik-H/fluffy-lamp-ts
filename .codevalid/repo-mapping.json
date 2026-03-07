@@ -2,43 +2,48 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Static frontend served by Express. It does not initiate any API calls nor trigger the user\u2011fetch\u2192CSV flow.",
+        "How_is_it_connected_to_implementation": "Static frontend served by Express. It does not initiate API calls or trigger the user\u2011fetch\u2192CSV workflow.",
+        "change_type": "unchanged",
         "file_path": "public/index.html",
         "id": "index_html",
         "name": "index.html",
-        "pseudo_code": "Render static HTML page\nNo logic related to fetching users or CSV generation\nNo interaction with backend endpoints",
+        "pseudo_code": "Render static HTML page\nNo JavaScript logic\nNo interaction with backend endpoints",
         "type": "component"
       },
       {
-        "How_is_it_connected_to_implementation": "Exposes the CSV data already stored by fetch-users.ts. Reads existing CSV, converts it to JSON, and sends it to the client.",
+        "How_is_it_connected_to_implementation": "Provides read access to the already-generated CSV file. Reads CSV, converts it to JSON, and returns the data.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "get_api_users",
         "name": "GET /api/users",
-        "pseudo_code": "IF users.csv does not exist:\n    return 404 with error\nREAD users.csv from disk\nPARSE CSV into JSON using csvToJson\nRETURN parsed JSON to caller",
+        "pseudo_code": "IF users.csv does not exist:\n    RETURN 404 error\nREAD users.csv from disk\nPARSE CSV to JSON\nRETURN parsed JSON",
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Core implementation of the requirement. Fetches users from JSONPlaceholder, converts them to CSV, writes the file to persistent storage.",
+        "How_is_it_connected_to_implementation": "Fetches users from JSONPlaceholder, converts them to CSV, writes output to persistent storage. Does not contain filtering by Boone.",
+        "change_type": "unchchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main()",
-        "pseudo_code": "SEND HTTP GET request to USERS_URL\nIF response not ok:\n    THROW error\nPARSE response JSON into users array\nBUILD CSV headers\nFOR each user in users:\n    convert into CSV row via userToRow\nJOIN rows into CSV string\nENSURE data directory exists\nWRITE users.csv to disk\nLOG success",
+        "pseudo_code": "SEND HTTP GET request to USERS_URL\nIF response not ok:\n    THROW error\nPARSE JSON array into users\nBUILD CSV headers from user fields\nFOR each user in users:\n    convert to CSV row via userToRow\nJOIN rows into CSV string\nENSURE data directory exists\nWRITE users.csv to disk\nLOG success",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts a User object into a list of CSV\u2011safe fields. Ensures each JSON field becomes a CSV column.",
+        "How_is_it_connected_to_implementation": "Converts each User object into a flat CSV-safe row. Ensures JSON fields map directly to CSV columns.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow()",
-        "pseudo_code": "FOR each required field:\n    escape CSV value\nRETURN array of string fields",
+        "pseudo_code": "FOR each user field:\n    escape via escapeCsvField\nRETURN array of field strings",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Prevents malformed CSV data by quoting values containing commas, quotes, or newlines.",
+        "How_is_it_connected_to_implementation": "Ensures proper CSV formatting by quoting and escaping problematic characters.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
         "name": "escapeCsvField()",
-        "pseudo_code": "IF value contains comma, quote, or newline:\n    wrap in quotes and escape internal quotes\nRETURN cleaned value",
+        "pseudo_code": "IF value contains comma, quote, or newline:\n    wrap value in quotes and escape internal quotes\nRETURN processed value",
         "type": "function"
       }
     ],
