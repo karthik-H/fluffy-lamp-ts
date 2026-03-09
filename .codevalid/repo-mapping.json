@@ -2,7 +2,7 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses the response, constructs CSV headers and rows, and writes CSV to persistent storage. It does not filter users by location 'Boone' and still writes a CSV file even when the returned user array is empty, violating acceptance criteria.",
+        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses response, constructs CSV headers and rows, and writes CSV to storage. Still does not filter by 'Boone' and still writes CSV even when API array is empty, violating acceptance criteria.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
@@ -11,7 +11,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts a single User object into CSV row values. Includes all fields returned from the API and formats them using CSV escaping.",
+        "How_is_it_connected_to_implementation": "Converts a single User object into CSV row values and escapes fields as needed.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
@@ -20,7 +20,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Escapes commas, quotes, and newlines in CSV fields to maintain valid CSV formatting.",
+        "How_is_it_connected_to_implementation": "Escapes commas, quotes, and newlines to maintain valid CSV formatting.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
@@ -29,7 +29,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Exposes persisted CSV user information via an API endpoint. Reads the CSV file, converts the content to JSON, and returns it.",
+        "How_is_it_connected_to_implementation": "Exposes saved CSV user information. Reads CSV, converts to JSON, and returns it if present.",
         "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "get_api_users",
@@ -38,7 +38,7 @@
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts CSV text into JSON objects so the API endpoint can return structured user data.",
+        "How_is_it_connected_to_implementation": "Parses CSV text into JSON objects returned by the API endpoint.",
         "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "csvtojson",
@@ -47,7 +47,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Parses a CSV line while respecting quoting rules and escaped characters.",
+        "How_is_it_connected_to_implementation": "Parses lines from CSV respecting quotes and escaped characters.",
         "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "parsecsvline",
@@ -56,7 +56,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "No implementation exists. The codebase contains no logic for filtering user data by the 'Boone' location before saving.",
+        "How_is_it_connected_to_implementation": "No implementation exists for filtering user data by 'Boone' before saving CSV.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "filterusersbylocation",

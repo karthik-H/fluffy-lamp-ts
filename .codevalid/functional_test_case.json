@@ -596,7 +596,7 @@
           "type": "edge"
         },
         {
-          "description": "Verify that non-scalar values inside the address object cause an error.",
+          "description": "Verify non-scalar values inside the address object cause an error.",
           "id": "non_scalar_address_fields_error",
           "implementation_id": "usertorow",
           "name": "non_scalar_address_fields_error",
@@ -1200,12 +1200,12 @@
           "type": "edge"
         },
         {
-          "description": "Ensures UTF\u20118 BOM-prefixed CSV headers are handled.",
+          "description": "Ensures UTF\u20138 BOM-prefixed CSV headers are handled.",
           "id": "csv_to_json_bom_header_support",
           "implementation_id": "csvtojson",
           "name": "csv_to_json_bom_header_support",
           "test_setup": {
-            "given": "A CSV whose header begins with a UTF\u20118 BOM character.",
+            "given": "A CSV whose header begins with a UTF\u20138 BOM character.",
             "then": "The BOM is treated as part of the header key and mapped literally.",
             "when": "csvToJson executes."
           },
@@ -2622,6 +2622,78 @@
             "when": "GET /api/users is called."
           },
           "type": "positive"
+        },
+        {
+          "description": "Verify behavior when users.csv exists but headers are missing or incomplete.",
+          "id": "get_users_csv_missing_headers",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_missing_headers",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Invalid or missing CSV headers"
+          },
+          "response_status_code": 500,
+          "test_setup": {
+            "given": "users.csv exists but does not contain valid header row.",
+            "then": "System returns HTTP 500 due to invalid CSV structure.",
+            "when": "GET /api/users is requested."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify system response when an unsupported HTTP method is used.",
+          "id": "get_users_invalid_http_method",
+          "implementation_id": "get_api_users",
+          "name": "get_users_invalid_http_method",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Method Not Allowed"
+          },
+          "response_status_code": 405,
+          "test_setup": {
+            "given": "Client attempts to POST to GET-only endpoint.",
+            "then": "System returns HTTP 405.",
+            "when": "POST /api/users is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify behavior when CSV contains rows with missing values.",
+          "id": "get_users_csv_with_missing_values",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_missing_values",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "email": null,
+                "id": 1,
+                "name": "User One"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv contains some fields left empty.",
+            "then": "System parses missing values as null.",
+            "when": "GET /api/users is invoked."
+          },
+          "type": "edge"
         }
       ]
     }
