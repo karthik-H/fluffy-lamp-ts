@@ -2404,6 +2404,56 @@
             "when": "GET /api/users is executed."
           },
           "type": "positive"
+        },
+        {
+          "description": "Verify behavior when users.csv exists but the system cannot read it due to permission issues.",
+          "id": "get_users_file_permission_error",
+          "implementation_id": "get_api_users",
+          "name": "get_users_file_permission_error",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Unable to read CSV file"
+          },
+          "response_status_code": 500,
+          "test_setup": {
+            "given": "users.csv exists but file permissions prevent the service from reading it.",
+            "then": "System returns HTTP 500 with an appropriate error message.",
+            "when": "GET /api/users is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that extra columns in the CSV do not break parsing and are included in JSON output.",
+          "id": "get_users_csv_with_extra_unexpected_columns",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_extra_unexpected_columns",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "extra_field": "unexpected_data",
+                "id": 1,
+                "name": "User One"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv contains all expected columns plus additional ones.",
+            "then": "System returns JSON including all additional CSV columns.",
+            "when": "GET /api/users is called."
+          },
+          "type": "positive"
         }
       ]
     }
