@@ -626,6 +626,52 @@
             "when": "userToRow is called"
           },
           "type": "negative"
+        },
+        {
+          "description": "Verify empty user object triggers malformed error.",
+          "id": "empty_user_object",
+          "implementation_id": "usertorow",
+          "name": "empty_user_object",
+          "test_setup": {
+            "given": {
+              "user": {}
+            },
+            "then": {
+              "error": "user_object_malformed"
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify nonscalar top\u2011level field values cause an error.",
+          "id": "nonscalar_top_level_field_error",
+          "implementation_id": "usertorow",
+          "name": "nonscalar_top_level_field_error",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone",
+                  "street": "St",
+                  "zipcode": "22222"
+                },
+                "email": "bad@example.com",
+                "id": 13,
+                "name": {
+                  "first": "A"
+                },
+                "phone": "123",
+                "username": "bad",
+                "website": "site.com"
+              }
+            },
+            "then": {
+              "error": "user_object_malformed"
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
         }
       ]
     },
@@ -2235,6 +2281,43 @@
             "when": "filterUsersByLocation is called"
           },
           "type": "negative"
+        },
+        {
+          "description": "Skips users whose address field is null.",
+          "id": "filter_users_address_null",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_address_null",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": null,
+                  "id": 1,
+                  "name": "NullAddress"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
         }
       ]
     }

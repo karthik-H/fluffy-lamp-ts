@@ -2,7 +2,7 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses response, constructs CSV headers and rows, and writes CSV to persistent storage. It still does not filter users by location 'Boone' and continues to write a CSV file even when the returned user array is empty, violating acceptance criteria.",
+        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses the response, constructs CSV headers and rows, and writes CSV to persistent storage. It does not filter users by location 'Boone' and still writes a CSV file even when the returned user array is empty, violating acceptance criteria.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
