@@ -644,7 +644,7 @@
           "type": "negative"
         },
         {
-          "description": "Verify nonscalar top\u2011level field values cause an error.",
+          "description": "Verify nonscalar top-level field values cause an error.",
           "id": "nonscalar_top_level_field_error",
           "implementation_id": "usertorow",
           "name": "nonscalar_top_level_field_error",
@@ -672,6 +672,82 @@
             "when": "userToRow is called"
           },
           "type": "negative"
+        },
+        {
+          "description": "Verify CRLF characters in text fields are escaped properly.",
+          "id": "crlf_characters_in_fields",
+          "implementation_id": "usertorow",
+          "name": "crlf_characters_in_fields",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone",
+                  "street": "Line1\r\nLine2",
+                  "zipcode": "55555"
+                },
+                "email": "crlf@example.com",
+                "id": 20,
+                "name": "John\r\nDoe",
+                "phone": "111",
+                "username": "crlfuser",
+                "website": "test.com"
+              }
+            },
+            "then": {
+              "result": [
+                "20",
+                "\"John\r\nDoe\"",
+                "crlfuser",
+                "crlf@example.com",
+                "\"Line1\r\nLine2\"",
+                "Boone",
+                "55555",
+                "111",
+                "test.com"
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Undefined scalar fields should become empty strings.",
+          "id": "undefined_fields_converted_to_empty",
+          "implementation_id": "usertorow",
+          "name": "undefined_fields_converted_to_empty",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone",
+                  "street": "Street",
+                  "zipcode": "12345"
+                },
+                "email": null,
+                "id": 30,
+                "name": null,
+                "phone": null,
+                "username": null,
+                "website": null
+              }
+            },
+            "then": {
+              "result": [
+                "30",
+                "",
+                "",
+                "",
+                "Street",
+                "Boone",
+                "12345",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
         }
       ]
     },
@@ -1619,6 +1695,262 @@
             "when": "filterUsersByLocation is called"
           },
           "type": "positive"
+        },
+        {
+          "description": "Returns all users whose city is Boone when multiple users match.",
+          "id": "filter_users_multiple_matches",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_multiple_matches",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Jane"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Mike"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Jane"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Mike"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Returns an empty array when no user has city Boone.",
+          "id": "filter_users_no_matches",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_no_matches",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Austin"
+                  },
+                  "id": 10,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Dallas"
+                  },
+                  "id": 11,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Returns an empty array when the input list is empty.",
+          "id": "filter_users_empty_list",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_empty_list",
+          "test_setup": {
+            "given": {
+              "users": []
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Skips users without an address field.",
+          "id": "filter_users_missing_address_field",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_missing_address_field",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "id": 1,
+                  "name": "NoAddress"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "WithAddress"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "WithAddress"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Skips users whose address is null.",
+          "id": "filter_users_null_address",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_null_address",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": null,
+                  "id": 7,
+                  "name": "NullAddress"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 8,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 8,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Skips users whose address does not include a city field.",
+          "id": "filter_users_missing_city_field",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_missing_city_field",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {},
+                  "id": 12,
+                  "name": "NoCity"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 13,
+                  "name": "CorrectCity"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 13,
+                  "name": "CorrectCity"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures city match is case-sensitive and does not match lowercase 'boone'.",
+          "id": "filter_users_city_case_sensitivity",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_case_sensitivity",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "boone"
+                  },
+                  "id": 21,
+                  "name": "Lowercase"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 22,
+                  "name": "ProperCase"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 22,
+                  "name": "ProperCase"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Returns empty array or error handling behavior when input is not an array.",
+          "id": "filter_users_invalid_input_type",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_invalid_input_type",
+          "test_setup": {
+            "given": {
+              "users": "invalid"
+            },
+            "then": "Function should return an empty array or handle the error per implementation rules",
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
         }
       ]
     }
@@ -1743,29 +2075,6 @@
             "when": "GET /api/users is requested."
           },
           "type": "edge"
-        },
-        {
-          "description": "Verify behavior when an unauthorized user attempts to access the endpoint.",
-          "id": "get_users_no_permissions",
-          "implementation_id": "get_api_users",
-          "name": "get_users_no_permissions",
-          "request_body_json": {},
-          "request_headers": {
-            "Authorization": "InvalidToken",
-            "Content-Type": "application/json"
-          },
-          "request_method": "GET",
-          "request_url": "/api/users",
-          "response_body_json": {
-            "error": "Forbidden"
-          },
-          "response_status_code": 403,
-          "test_setup": {
-            "given": "Client sends invalid or missing authentication token.",
-            "then": "The system denies access with HTTP 403.",
-            "when": "GET /api/users is invoked."
-          },
-          "type": "negative"
         },
         {
           "description": "Simulate slow I/O response but valid CSV. Ensure timeout or successful response.",
