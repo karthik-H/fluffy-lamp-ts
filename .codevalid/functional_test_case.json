@@ -727,7 +727,8 @@
           },
           "type": "negative"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/usertorow.ts"
     },
     {
       "implementation_id": "escapecsvfield",
