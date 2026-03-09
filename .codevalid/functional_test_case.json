@@ -1392,6 +1392,54 @@
             "when": "parseCsvLine is called"
           },
           "type": "negative"
+        },
+        {
+          "description": "Handles undefined input by treating it as an empty string.",
+          "id": "parse_csv_undefined_input",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_undefined_input",
+          "test_setup": {
+            "given": "line = undefined",
+            "then": "[\"\"] is returned or behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles numeric input by converting to string or validating behavior.",
+          "id": "parse_csv_non_string_input_number",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_non_string_input_number",
+          "test_setup": {
+            "given": "line = 12345",
+            "then": "[\"12345\"] or error behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles object input by validating error behavior.",
+          "id": "parse_csv_non_string_input_object",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_non_string_input_object",
+          "test_setup": {
+            "given": "line = {\"value\":\"A,B\"}",
+            "then": "Error behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures newline outside quotes is treated as line break or error.",
+          "id": "parse_csv_multiline_unquoted_input",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_multiline_unquoted_input",
+          "test_setup": {
+            "given": "line = \"A,B\\nC,D\"",
+            "then": "Behavior validated based on pseudo-code",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
         }
       ]
     },
@@ -1789,6 +1837,152 @@
             "when": "filterUsersByLocation is called"
           },
           "type": "edge"
+        },
+        {
+          "description": "Throws error when input users is undefined.",
+          "id": "filter_users_undefined_input",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_undefined_input",
+          "test_setup": {
+            "given": {
+              "users": "undefined"
+            },
+            "then": {
+              "error": "InvalidInputError"
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Throws error when input is not an array.",
+          "id": "filter_users_non_array_input",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_non_array_input",
+          "test_setup": {
+            "given": {
+              "users": {
+                "not": "array"
+              }
+            },
+            "then": {
+              "error": "InvalidInputError"
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Returns no match when city is null.",
+          "id": "filter_users_city_null",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_null",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": null
+                  },
+                  "id": 1,
+                  "name": "Test"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Match"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Match"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Returns no match when city is an empty string.",
+          "id": "filter_users_city_empty_string",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_empty_string",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": ""
+                  },
+                  "id": 1,
+                  "name": "Test"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Match"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Match"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Skips entries that are not valid user objects.",
+          "id": "filter_users_invalid_user_object",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_invalid_user_object",
+          "test_setup": {
+            "given": {
+              "users": [
+                "not-an-object",
+                123,
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
         }
       ]
     }

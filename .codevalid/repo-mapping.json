@@ -2,74 +2,79 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Executes an HTTP GET request to the JSONPlaceholder users endpoint, filters users by city, converts the filtered response to CSV format, and writes the CSV file to persistent storage.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main",
-        "pseudo_code": "CALL fetch(USERS_URL)\nIF response not OK THEN THROW error\nPARSE response JSON into users array\nCALL filterUsersByLocation(users)\nDEFINE CSV headers for selected fields\nFOR EACH user IN filteredUsers:\n    CONVERT user fields to CSV row using userToRow\nJOIN headers and rows into full CSV string\nENSURE data directory exists\nWRITE CSV string to data/users.csv\nPRINT success message",
+        "pseudo_code": "",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Maps a user object to an array of CSV-safe strings for each predefined column, used by main() to generate the CSV rows.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow",
-        "pseudo_code": "RETURN array[\n    id,\n    escaped name,\n    escaped username,\n    escaped email,\n    escaped address.street,\n    escaped address.city,\n    escaped address.zipcode,\n    escaped phone,\n    escaped website\n]",
+        "pseudo_code": "",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Escapes special characters to ensure CSV-safe output.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
         "name": "escapeCsvField",
-        "pseudo_code": "CONVERT input to string\nIF string contains comma, quote, or newline THEN\n    RETURN string wrapped in quotes with internal quotes doubled\nELSE\n    RETURN string",
+        "pseudo_code": "",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Reads the saved CSV file, converts it to JSON, and returns the result over HTTP.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/server.ts",
         "id": "get_api_users",
         "name": "GET /api/users",
-        "pseudo_code": "IF users.csv does not exist THEN\n    RETURN 404 with error JSON\nREAD users.csv\nPARSE CSV into JSON array using csvToJson\nRETURN JSON array",
+        "pseudo_code": "",
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts the generated CSV back into a JSON array for the API endpoint.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/server.ts",
         "id": "csvtojson",
         "name": "csvToJson",
-        "pseudo_code": "SPLIT CSV into non-empty lines\nIF less than 2 lines THEN RETURN empty array\nPARSE header line into header list\nFOR EACH row line:\n    PARSE row into values\n    MAP values to header keys\nRETURN array of row objects",
+        "pseudo_code": "",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Parses a single CSV line with support for quoted fields so that CSV rows can be converted back into JSON.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/server.ts",
         "id": "parsecsvline",
         "name": "parseCsvLine",
-        "pseudo_code": "INITIALIZE result array, current string, inQuotes flag\nFOR each character in line:\n    IF quote THEN\n        TOGGLE inQuotes or append escaped quote\n    ELSE IF comma AND NOT inQuotes THEN\n        PUSH current to result\n        RESET current\n    ELSE\n        APPEND character to current\nPUSH final field\nRETURN result",
+        "pseudo_code": "",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Filters the fetched users to only include those whose address.city equals 'Boone' before CSV transformation.",
-        "change_type": "unchanged",
+        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "change_type": "removed",
         "file_path": "src/fetch-users.ts",
         "id": "filterusersbylocation",
         "name": "filterUsersByLocation",
-        "pseudo_code": "INPUT users array\nRETURN users WHERE user.address.city EQUALS 'Boone'",
+        "pseudo_code": "",
         "type": "function"
       }
     ],
     "missing_implementations": [
-      "CSV file contains columns corresponding to each field in the user JSON object (the implementation only selects a subset of fields).",
-      "CSV column names are identical to the field names in the JSON object (current implementation uses custom header definitions).",
-      "No user data is omitted or transformed; all fields from the API response are included (current implementation omits multiple fields such as company, geo coordinates, suite, etc.).",
-      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error. Empty-response handling is missing; an empty CSV is still written."
+      "System sends an HTTP GET request to https://jsonplaceholder.typicode.com/users.",
+      "System receives an array of user objects in the response.",
+      "Each user object in the response is included as a row in the resulting CSV file.",
+      "CSV file contains columns corresponding to each field in the user JSON object (e.g., id, name, username, email, etc.).",
+      "CSV column names are identical to the field names in the JSON object.",
+      "CSV file is saved to persistent storage and is accessible for later retrieval.",
+      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error.",
+      "No user data is omitted or transformed; all fields from the API response are included.",
+      "before saving information check filter for data with location as Boone"
     ]
   }
 }
