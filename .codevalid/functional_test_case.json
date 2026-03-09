@@ -589,6 +589,143 @@
             "when": "userToRow is called"
           },
           "type": "edge"
+        },
+        {
+          "description": "Verify that missing geo.lat or geo.lng fields result in empty CSV values.",
+          "id": "partial_geo_coordinates",
+          "implementation_id": "usertorow",
+          "name": "partial_geo_coordinates",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone",
+                  "geo": {
+                    "lat": "45.0"
+                  },
+                  "street": "Test",
+                  "suite": "Test",
+                  "zipcode": "00000"
+                },
+                "company": {
+                  "name": "Test Co"
+                },
+                "email": "x@example.com",
+                "id": 10,
+                "name": "Partial Geo",
+                "phone": "1234",
+                "username": "partial",
+                "website": "test.com"
+              }
+            },
+            "then": {
+              "result": [
+                "10",
+                "Partial Geo",
+                "partial",
+                "x@example.com",
+                "Test",
+                "Test",
+                "Boone",
+                "00000",
+                "45.0",
+                "",
+                "1234",
+                "test.com",
+                "Test Co",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that numeric and boolean values inside user fields are stringified correctly.",
+          "id": "numeric_and_boolean_fields_stringified",
+          "implementation_id": "usertorow",
+          "name": "numeric_and_boolean_fields_stringified",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": true,
+                  "geo": {
+                    "lat": 100,
+                    "lng": false
+                  },
+                  "street": 123,
+                  "suite": 0,
+                  "zipcode": 99999
+                },
+                "company": {
+                  "bs": false,
+                  "catchPhrase": true,
+                  "name": 55
+                },
+                "email": 77,
+                "id": 42,
+                "name": 88,
+                "phone": true,
+                "username": false,
+                "website": 1234
+              }
+            },
+            "then": {
+              "result": [
+                "42",
+                "88",
+                "false",
+                "77",
+                "123",
+                "0",
+                "true",
+                "99999",
+                "100",
+                "false",
+                "true",
+                "1234",
+                "55",
+                "true",
+                "false"
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verify behavior when input is not a user object.",
+          "id": "non_object_input_rejected",
+          "implementation_id": "usertorow",
+          "name": "non_object_input_rejected",
+          "test_setup": {
+            "given": {
+              "user": "invalid"
+            },
+            "then": {
+              "result": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
         }
       ]
     },
