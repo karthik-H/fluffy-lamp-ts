@@ -3,6 +3,7 @@
     "implementation": [
       {
         "How_is_it_connected_to_implementation": "Executes an HTTP GET request to the JSONPlaceholder users endpoint, converts the response to CSV format, and writes the CSV file to persistent storage.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main",
@@ -10,7 +11,8 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Maps a user object to an array of CSV-safe strings for each predefined column. Used by main() to generate the CSV rows.",
+        "How_is_it_connected_to_implementation": "Maps a user object to an array of CSV-safe strings for each predefined column, used by main() to generate the CSV rows.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow",
@@ -18,23 +20,26 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Ensures text fields containing special characters are properly escaped before being written into the CSV file.",
+        "How_is_it_connected_to_implementation": "Escapes special characters to ensure CSV-safe output.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
         "name": "escapeCsvField",
-        "pseudo_code": "CONVERT input to string\nIF string contains comma, quote, or newline:\n    RETURN string wrapped in quotes with internal quotes doubled\nELSE\n    RETURN string",
+        "pseudo_code": "CONVERT input to string\nIF string contains comma, quote, or newline THEN\n    RETURN string wrapped in quotes with internal quotes doubled\nELSE\n    RETURN string",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Provides access to the saved users.csv file by reading it, converting it back to JSON, and returning it over HTTP.",
+        "How_is_it_connected_to_implementation": "Reads the saved CSV file, converts it to JSON, and returns the result over HTTP.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "get_api_users",
         "name": "GET /api/users",
-        "pseudo_code": "IF users.csv does not exist:\n    RETURN 404 with error JSON\nREAD users.csv\nPARSE CSV into JSON array using csvToJson\nRETURN JSON array",
+        "pseudo_code": "IF users.csv does not exist THEN\n    RETURN 404 with error JSON\nREAD users.csv\nPARSE CSV into JSON array using csvToJson\nRETURN JSON array",
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts the generated CSV file back into structured JSON rows for the /api/users endpoint.",
+        "How_is_it_connected_to_implementation": "Converts the generated CSV back into a JSON array for the API endpoint.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "csvtojson",
         "name": "csvToJson",
@@ -42,20 +47,29 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Parses a single CSV line with support for quoted fields. Used by csvToJson to reconstruct JSON objects from the saved CSV.",
+        "How_is_it_connected_to_implementation": "Parses a single CSV line with support for quoted fields so that CSV rows can be converted back into JSON.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "parsecsvline",
         "name": "parseCsvLine",
-        "pseudo_code": "INITIALIZE result array, current string, inQuotes flag\nFOR each character in line:\n    IF quote:\n        TOGGLE inQuotes or append escaped quote\n    ELSE IF comma and not inQuotes:\n        PUSH current to result and reset current\n    ELSE\n        APPEND character to current\nPUSH final field\nRETURN result",
+        "pseudo_code": "INITIALIZE result array, current string, inQuotes flag\nFOR each character in line:\n    IF quote THEN\n        TOGGLE inQuotes or append escaped quote\n    ELSE IF comma AND NOT inQuotes THEN\n        PUSH current to result\n        RESET current\n    ELSE\n        APPEND character to current\nPUSH final field\nRETURN result",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Filters the fetched users to only include those whose address.city is equal to 'Boone' before CSV transformation.",
+        "change_type": "",
+        "file_path": "src/fetch-users.ts",
+        "id": "filterusersbylocation",
+        "name": "filterUsersByLocation",
+        "pseudo_code": "INPUT users array\nRETURN users WHERE user.address.city EQUALS 'Boone'",
         "type": "function"
       }
     ],
     "missing_implementations": [
-      "CSV file contains columns corresponding to each field in the user JSON object (e.g., id, name, username, email, etc.).",
-      "CSV column names are identical to the field names in the JSON object.",
-      "No user data is omitted or transformed; all fields from the API response are included.",
-      "before saving information check filter for data with location as Boone",
-      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error. (Partially implemented: fetch failure throws an error, but empty-response handling still writes an empty CSV.)"
+      "CSV file contains columns corresponding to each field in the user JSON object (the implementation only selects a subset of fields).",
+      "CSV column names are identical to the field names in the JSON object (current implementation uses custom header definitions).",
+      "No user data is omitted or transformed; all fields from the API response are included (current implementation omits multiple fields such as company, geo coordinates, suite, etc.).",
+      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error. Empty-response handling is missing; an empty CSV is still written."
     ]
   }
 }

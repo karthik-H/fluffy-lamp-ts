@@ -13,7 +13,8 @@
             "then": "CSV file is generated with all fields, filtered for location='Boone', and saved to data/users.csv",
             "when": "main() is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns valid users but none with location 'Boone'; CSV file should not be created",
@@ -25,7 +26,8 @@
             "then": "No CSV file is created and system signals no matching data",
             "when": "main() is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns an empty array; no CSV should be created",
@@ -37,7 +39,8 @@
             "then": "System throws an error and does not create or modify the CSV file",
             "when": "main() is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns 404 Not Found",
@@ -49,7 +52,8 @@
             "then": "Function throws an error and no CSV file is created",
             "when": "main() is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Server error during API call",
@@ -61,7 +65,8 @@
             "then": "Function throws an error and no CSV file is written",
             "when": "main() is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns non-parseable JSON body",
@@ -73,7 +78,8 @@
             "then": "Error is thrown and no CSV is created",
             "when": "main() is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "User objects missing some fields; CSV should include headers for all fields and blank values where missing",
@@ -85,7 +91,8 @@
             "then": "CSV file is created with blanks for missing values, preserving field names exactly",
             "when": "main() is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns exactly one user object; CSV should contain one data row",
@@ -97,7 +104,8 @@
             "then": "CSV file is created with a single data row",
             "when": "main() is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Data directory does not exist; system must create it",
@@ -109,7 +117,8 @@
             "then": "Directory is created and CSV file is successfully written",
             "when": "main() is called with valid API response including Boone"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Filesystem prevents directory creation",
@@ -121,7 +130,8 @@
             "then": "System throws an error and no CSV is written",
             "when": "main() is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Write operation to file system fails",
@@ -133,7 +143,8 @@
             "then": "System throws an error and no CSV file is created",
             "when": "main() is called with valid API data"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns a large array of users; system must handle iteration and CSV creation correctly",
@@ -145,7 +156,8 @@
             "then": "System successfully generates the large CSV without truncation or failure",
             "when": "main() is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "User fields contain commas, newlines, or quotes requiring CSV escaping",
@@ -157,7 +169,8 @@
             "then": "System escapes fields properly and CSV remains valid",
             "when": "main() is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "API returns extra fields not previously known; system should include them as columns",
@@ -169,7 +182,47 @@
             "then": "System includes all fields and preserves field names exactly",
             "when": "main() is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Fetch throws a network-level exception; system must error and avoid writing CSV",
+          "id": "network_timeout_or_fetch_exception",
+          "implementation_id": "main",
+          "name": "network_timeout_or_fetch_exception",
+          "test_setup": {
+            "given": "The fetch call throws due to network timeout or connectivity issue",
+            "then": "System throws an error and does not create or modify any CSV file",
+            "when": "main() is called"
+          },
+          "type": "negative",
+          "update_type": "add"
+        },
+        {
+          "description": "Existing CSV file must not be modified when API request or processing fails",
+          "id": "existing_csv_not_modified_on_failure",
+          "implementation_id": "main",
+          "name": "existing_csv_not_modified_on_failure",
+          "test_setup": {
+            "given": "An existing data/users.csv file is present and API returns an error",
+            "then": "The existing CSV file remains unchanged",
+            "when": "main() is called"
+          },
+          "type": "negative",
+          "update_type": "add"
+        },
+        {
+          "description": "Location field exists but is not a string or does not match expected structure",
+          "id": "invalid_location_field_structure",
+          "implementation_id": "main",
+          "name": "invalid_location_field_structure",
+          "test_setup": {
+            "given": "API returns users where location is an object or null instead of a string and therefore cannot match 'Boone'",
+            "then": "System identifies no matching Boone users and does not create a CSV",
+            "when": "main() is called"
+          },
+          "type": "negative",
+          "update_type": "add"
         }
       ]
     },
@@ -212,7 +265,8 @@
             },
             "when": "userToRow is called with the user object"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Verify that fields with commas are properly escaped.",
@@ -250,73 +304,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "positive"
-        },
-        {
-          "description": "Users without city Boone should not be saved per requirement.",
-          "id": "filter_excludes_non_boone_users",
-          "implementation_id": "usertorow",
-          "name": "filter_excludes_non_boone_users",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "NotBoone",
-                  "street": "Random",
-                  "zipcode": "00000"
-                },
-                "email": "nb@example.com",
-                "id": 3,
-                "name": "Non Boone User",
-                "phone": "000-000",
-                "username": "nonboone",
-                "website": "none.com"
-              }
-            },
-            "then": {
-              "result": "user_excluded"
-            },
-            "when": "System checks location filter for 'Boone'"
-          },
-          "type": "positive"
-        },
-        {
-          "description": "User with city Boone should be included per filter requirement.",
-          "id": "boone_user_included",
-          "implementation_id": "usertorow",
-          "name": "boone_user_included",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "Boone Street",
-                  "zipcode": "11111"
-                },
-                "email": "boone@example.com",
-                "id": 4,
-                "name": "Boone Resident",
-                "phone": "111-111",
-                "username": "booneuser",
-                "website": "boone.com"
-              }
-            },
-            "then": {
-              "result": [
-                "4",
-                "Boone Resident",
-                "booneuser",
-                "boone@example.com",
-                "Boone Street",
-                "Boone",
-                "11111",
-                "111-111",
-                "boone.com"
-              ]
-            },
-            "when": "System checks location filter for 'Boone'"
-          },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "User missing the address object should fail gracefully.",
@@ -339,7 +328,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "User with missing street, city, or zipcode should raise an error.",
@@ -367,7 +357,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "User fields that are null should be converted to empty CSV fields.",
@@ -405,7 +396,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensure that empty string values remain empty in CSV.",
@@ -443,7 +435,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Verify numeric or boolean values are stringified properly.",
@@ -481,7 +474,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Missing required fields should cause a failure.",
@@ -499,11 +493,12 @@
             },
             "when": "userToRow is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Verify embedded quotes are escaped correctly for CSV.",
-          "id": "escaped_quotes_in_fields",
+          "id": "escaped_quotes_in_fields_gmhf",
           "implementation_id": "usertorow",
           "name": "escaped_quotes_in_fields",
           "test_setup": {
@@ -537,7 +532,8 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchchanged"
         }
       ]
     },
@@ -787,7 +783,8 @@
             "then": "An array of two JSON objects is returned with keys mapped to header names.",
             "when": "csvToJson is called with the CSV string."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures the function correctly parses a CSV with a header and a single data row.",
@@ -799,7 +796,8 @@
             "then": "Returns an array containing a single mapped JSON object.",
             "when": "csvToJson is executed."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Function should return an empty array when the CSV input is an empty string.",
@@ -811,7 +809,8 @@
             "then": "Returns an empty array.",
             "when": "The function is executed."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Function should return an empty array when only header exists but no data rows.",
@@ -823,7 +822,8 @@
             "then": "Returns an empty array because there are less than 2 non\u2011empty lines.",
             "when": "csvToJson is called."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures trailing empty lines are ignored.",
@@ -835,7 +835,8 @@
             "then": "Returns an empty array because only one valid line exists.",
             "when": "csvToJson is executed."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures whitespace-only lines are treated as empty and ignored.",
@@ -847,7 +848,8 @@
             "then": "Returns one JSON object mapped correctly to the header.",
             "when": "The function executes."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "If a row has more values than headers, extra values should be ignored based on mapping logic.",
@@ -859,7 +861,8 @@
             "then": "Only 'id' and 'name' are mapped and returned; 'Extra' is ignored.",
             "when": "Function is called."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "If a row has fewer values than headers, missing keys should be assigned empty strings or undefined behavior based on mapping logic.",
@@ -871,7 +874,8 @@
             "then": "Returned object includes id='1', name='John', and email set to an empty string.",
             "when": "Function executes."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures special characters in CSV fields (commas inside quotes) are properly parsed.",
@@ -883,7 +887,8 @@
             "then": "Value for name is 'John, Doe'.",
             "when": "csvToJson executes."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures Unicode characters are parsed correctly.",
@@ -895,7 +900,8 @@
             "then": "Returned JSON correctly preserves all characters.",
             "when": "Function is executed."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures headers with leading/trailing spaces are treated as literal header keys.",
@@ -907,7 +913,8 @@
             "then": "Returned JSON uses exact spaced header keys.",
             "when": "Function runs."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures value trimming does not occur unless implemented.",
@@ -919,7 +926,8 @@
             "then": "Spaces are preserved in returned JSON.",
             "when": "Function executes."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles a CSV with no commas; each row becomes a single-column value.",
@@ -931,7 +939,8 @@
             "then": "Returns JSON array with one object { id: '123' }.",
             "when": "Function runs."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures a CSV consisting entirely of empty or whitespace lines returns an empty array.",
@@ -943,7 +952,8 @@
             "then": "Returns an empty array.",
             "when": "csvToJson is called."
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Verifies performance and correctness with a large CSV dataset.",
@@ -955,7 +965,8 @@
             "then": "Returns JSON array with exactly the same number of objects as rows.",
             "when": "Function executes."
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Verifies behavior when duplicate headers exist.",
@@ -967,7 +978,47 @@
             "then": "Later duplicate keys overwrite earlier ones in returned JSON.",
             "when": "Function runs."
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Ensures behavior when header exists but is an empty string.",
+          "id": "csv_to_json_header_empty_string",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_header_empty_string",
+          "test_setup": {
+            "given": "CSV with header '' and row 'test'.",
+            "then": "Returns array with one object containing a single key '' mapped to 'test'.",
+            "when": "csvToJson runs."
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensures rows that contain empty comma-separated values map to empty strings.",
+          "id": "csv_to_json_row_empty_values",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_row_empty_values",
+          "test_setup": {
+            "given": "Header 'a,b,c' and row ',,'.",
+            "then": "Object returned is { a:'', b:'', c:'' }.",
+            "when": "csvToJson runs."
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Handles quoted values containing newline characters.",
+          "id": "csv_to_json_quoted_multiline_value",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_quoted_multiline_value",
+          "test_setup": {
+            "given": "Header 'id,notes' and row '1,\"Line1\nLine2\"'.",
+            "then": "JSON preserves embedded newline inside value.",
+            "when": "csvToJson runs."
+          },
+          "type": "edge",
+          "update_type": "add"
         }
       ]
     },
@@ -984,7 +1035,8 @@
             "then": "[\"John\", \"Doe\", \"30\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Parses a CSV line where a field contains quotes and commas.",
@@ -996,7 +1048,8 @@
             "then": "[\"John\", \"Doe, Jr.\", \"30\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Parses a CSV line where a field is fully quoted.",
@@ -1008,7 +1061,8 @@
             "then": "[\"Hello World\", \"Test\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Parses a CSV line containing escaped double quotes within a quoted field.",
@@ -1020,7 +1074,8 @@
             "then": "[\"He said \\\"Hello\\\"\", \"World\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles an empty input line.",
@@ -1032,7 +1087,8 @@
             "then": "[\"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles a line with a trailing comma indicating an empty final field.",
@@ -1044,7 +1100,8 @@
             "then": "[\"John\", \"Doe\", \"30\", \"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles a leading comma representing an empty first field.",
@@ -1056,7 +1113,8 @@
             "then": "[\"\", \"John\", \"Doe\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles a string containing only commas, producing empty fields.",
@@ -1068,7 +1126,8 @@
             "then": "[\"\", \"\", \"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Error scenario where quotes are opened but not closed.",
@@ -1080,7 +1139,8 @@
             "then": "Function returns [\"Hello,World\"] because pseudo code does not explicitly error; validate behavior",
             "when": "parseCsvLine is called"
           },
-          "type": "negative"
+          "type": "negative",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles a field made of a single quote character.",
@@ -1092,7 +1152,8 @@
             "then": "[\"\", \"A\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles fields with multiple consecutive quote characters.",
@@ -1104,7 +1165,8 @@
             "then": "[\"\\\"Test\\\"\", \"X\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures spaces outside quotes are preserved.",
@@ -1116,7 +1178,8 @@
             "then": "[\"  John  \", \"  Doe  \"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles mixture of quoted and unquoted fields.",
@@ -1128,7 +1191,8 @@
             "then": "[\"123\", \"abc\", \"xyz\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive"
+          "type": "positive",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles very long fields to test boundary conditions.",
@@ -1140,7 +1204,8 @@
             "then": "[\"A.repeat(10000)\", \"B\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Handles a field containing only quotes.",
@@ -1152,7 +1217,8 @@
             "then": "[\"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge"
+          "type": "edge",
+          "update_type": "unchanged"
         },
         {
           "description": "Ensures commas inside unquoted fields are treated as delimiters.",
@@ -1164,7 +1230,444 @@
             "then": "[\"A\", \"B\", \"C\"] is returned",
             "when": "parseCsvLine is called"
           },
+          "type": "positive",
+          "update_type": "unchanged"
+        },
+        {
+          "description": "Handles empty quoted fields such as \"\" which should parse as an empty string.",
+          "id": "parse_csv_empty_quoted_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_empty_quoted_field",
+          "test_setup": {
+            "given": "line = \"\\\"\\\",B\"",
+            "then": "[\"\", \"B\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        },
+        {
+          "description": "Handles a quoted field immediately after a comma.",
+          "id": "parse_csv_quote_right_after_comma",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_quote_right_after_comma",
+          "test_setup": {
+            "given": "line = \",\\\"Hello\\\"\"",
+            "then": "[\"\", \"Hello\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive",
+          "update_type": "add"
+        },
+        {
+          "description": "Ensures newline literals inside a quoted field are treated as part of the value.",
+          "id": "parse_csv_field_with_internal_newline_literal",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_field_with_internal_newline_literal",
+          "test_setup": {
+            "given": "line = \"\\\"Hello\\nWorld\\\",X\"",
+            "then": "[\"Hello\\nWorld\", \"X\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge",
+          "update_type": "add"
+        }
+      ]
+    },
+    {
+      "implementation_id": "filterusersbylocation",
+      "test_cases": [
+        {
+          "description": "Returns only users whose city is Boone when one user matches.",
+          "id": "filter_users_happy_path_single_match",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_happy_path_single_match",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Austin"
+                  },
+                  "id": 2,
+                  "name": "Mary"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
           "type": "positive"
+        },
+        {
+          "description": "Returns multiple users whose city is Boone.",
+          "id": "filter_users_happy_path_multiple_matches",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_happy_path_multiple_matches",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Returns an empty array when no user has city Boone.",
+          "id": "filter_users_no_matches",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_no_matches",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Austin"
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "New York"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Returns empty array when input user list is empty.",
+          "id": "filter_users_empty_input",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_empty_input",
+          "test_setup": {
+            "given": {
+              "users": []
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Throws error or returns empty array when input is null.",
+          "id": "filter_users_null_input",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_null_input",
+          "test_setup": {
+            "given": {
+              "users": null
+            },
+            "then": {
+              "error": "InvalidInputError"
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles users missing address property.",
+          "id": "filter_users_missing_address_field",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_missing_address_field",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles users with address but missing city field.",
+          "id": "filter_users_missing_city_field",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_missing_city_field",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {},
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "City match is case sensitive; 'boone' does not match 'Boone'.",
+          "id": "filter_users_city_case_sensitivity",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_case_sensitivity",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Mary"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Mary"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "City value must match exactly; whitespace should cause mismatch.",
+          "id": "filter_users_city_with_whitespace",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_with_whitespace",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": " Boone "
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles non-string city values.",
+          "id": "filter_users_non_string_city",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_non_string_city",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": 123
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Jake"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures no fields other than filtering are modified.",
+          "id": "filter_users_verify_no_transformation",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_verify_no_transformation",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone",
+                    "zip": "52234"
+                  },
+                  "email": "john@example.com",
+                  "id": 1,
+                  "name": "John",
+                  "username": "johnny"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone",
+                    "zip": "52234"
+                  },
+                  "email": "john@example.com",
+                  "id": 1,
+                  "name": "John",
+                  "username": "johnny"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles large input arrays without failure.",
+          "id": "filter_users_large_dataset",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_large_dataset",
+          "test_setup": {
+            "given": {
+              "users": "T.repeat(10000 valid user objects with alternating city Boone and non-Boone)"
+            },
+            "then": {
+              "result": "T.containsOnly(users where address.city equals Boone)"
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
         }
       ]
     }
