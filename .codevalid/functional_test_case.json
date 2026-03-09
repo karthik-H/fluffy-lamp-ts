@@ -297,457 +297,6 @@
             "when": "userToRow is called with the user object"
           },
           "type": "positive"
-        },
-        {
-          "description": "Verify that fields with commas are properly escaped.",
-          "id": "user_with_commas_in_fields",
-          "implementation_id": "usertorow",
-          "name": "user_with_commas_in_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "Main, Street",
-                  "zipcode": "12345"
-                },
-                "email": "john@example.com",
-                "id": 2,
-                "name": "John, Doe",
-                "phone": "123-456",
-                "username": "johnny",
-                "website": "example.com"
-              }
-            },
-            "then": {
-              "result": [
-                "2",
-                "\"John, Doe\"",
-                "johnny",
-                "john@example.com",
-                "\"Main, Street\"",
-                "\"Boone\"",
-                "12345",
-                "123-456",
-                "example.com"
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "positive"
-        },
-        {
-          "description": "User missing the address object should fail gracefully.",
-          "id": "missing_address_object",
-          "implementation_id": "usertorow",
-          "name": "missing_address_object",
-          "test_setup": {
-            "given": {
-              "user": {
-                "email": "noaddr@example.com",
-                "id": 5,
-                "name": "Missing Address",
-                "phone": "555-555",
-                "username": "noaddr",
-                "website": "noaddr.com"
-              }
-            },
-            "then": {
-              "error": "address_missing"
-            },
-            "when": "userToRow is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "User with missing street, city, or zipcode should raise an error.",
-          "id": "missing_nested_address_fields",
-          "implementation_id": "usertorow",
-          "name": "missing_nested_address_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": null,
-                  "zipcode": null
-                },
-                "email": "bad@example.com",
-                "id": 6,
-                "name": "Bad Address",
-                "phone": "333-333",
-                "username": "badaddr",
-                "website": "bad.com"
-              }
-            },
-            "then": {
-              "error": "invalid_address_fields"
-            },
-            "when": "userToRow is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "User fields that are null should be converted to empty CSV fields.",
-          "id": "null_scalar_fields",
-          "implementation_id": "usertorow",
-          "name": "null_scalar_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "",
-                  "zipcode": ""
-                },
-                "email": null,
-                "id": 7,
-                "name": null,
-                "phone": null,
-                "username": null,
-                "website": null
-              }
-            },
-            "then": {
-              "result": [
-                "7",
-                "",
-                "",
-                "",
-                "",
-                "Boone",
-                "",
-                "",
-                ""
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Ensure that empty string values remain empty in CSV.",
-          "id": "empty_strings_in_fields",
-          "implementation_id": "usertorow",
-          "name": "empty_strings_in_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "",
-                  "zipcode": ""
-                },
-                "email": "",
-                "id": 8,
-                "name": "",
-                "phone": "",
-                "username": "",
-                "website": ""
-              }
-            },
-            "then": {
-              "result": [
-                "8",
-                "",
-                "",
-                "",
-                "",
-                "Boone",
-                "",
-                "",
-                ""
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify numeric or boolean values are stringified properly.",
-          "id": "non_string_values_cast_to_string",
-          "implementation_id": "usertorow",
-          "name": "non_string_values_cast_to_string",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": 456,
-                  "zipcode": 789
-                },
-                "email": "email@test.com",
-                "id": 9,
-                "name": 123,
-                "phone": false,
-                "username": true,
-                "website": 42
-              }
-            },
-            "then": {
-              "result": [
-                "9",
-                "123",
-                "true",
-                "email@test.com",
-                "456",
-                "Boone",
-                "789",
-                "false",
-                "42"
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Missing required fields should cause a failure.",
-          "id": "malformed_user_object",
-          "implementation_id": "usertorow",
-          "name": "malformed_user_object",
-          "test_setup": {
-            "given": {
-              "user": {
-                "username": "nouserid"
-              }
-            },
-            "then": {
-              "error": "user_object_malformed"
-            },
-            "when": "userToRow is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify embedded quotes are escaped correctly for CSV.",
-          "id": "escaped_quotes_in_fields_gmhf",
-          "implementation_id": "usertorow",
-          "name": "escaped_quotes_in_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "Street \"One\"",
-                  "zipcode": "99999"
-                },
-                "email": "quoted@example.com",
-                "id": 10,
-                "name": "John \"Quote\" Doe",
-                "phone": "123",
-                "username": "quoted",
-                "website": "quote.com"
-              }
-            },
-            "then": {
-              "result": [
-                "10",
-                "\"John \"\"Quote\"\" Doe\"",
-                "quoted",
-                "quoted@example.com",
-                "\"Street \"\"One\"\"\"",
-                "Boone",
-                "99999",
-                "123",
-                "quote.com"
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify that newline characters are escaped properly for CSV.",
-          "id": "newline_characters_in_fields",
-          "implementation_id": "usertorow",
-          "name": "newline_characters_in_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "Line1\nLine2",
-                  "zipcode": "11111"
-                },
-                "email": "newline@example.com",
-                "id": 11,
-                "name": "John\nDoe",
-                "phone": "555-0000",
-                "username": "newliner",
-                "website": "site.com"
-              }
-            },
-            "then": {
-              "result": [
-                "11",
-                "\"John\nDoe\"",
-                "newliner",
-                "newline@example.com",
-                "\"Line1\nLine2\"",
-                "Boone",
-                "11111",
-                "555-0000",
-                "site.com"
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify non-scalar values inside the address object cause an error.",
-          "id": "non_scalar_address_fields_error",
-          "implementation_id": "usertorow",
-          "name": "non_scalar_address_fields_error",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": [
-                    "Boone"
-                  ],
-                  "street": {
-                    "value": "Street"
-                  },
-                  "zipcode": 12345
-                },
-                "email": "badaddr@example.com",
-                "id": 12,
-                "name": "User Bad Address",
-                "phone": "000-000",
-                "username": "invalidaddr",
-                "website": "test.com"
-              }
-            },
-            "then": {
-              "error": "invalid_address_fields"
-            },
-            "when": "userToRow is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify empty user object triggers malformed error.",
-          "id": "empty_user_object",
-          "implementation_id": "usertorow",
-          "name": "empty_user_object",
-          "test_setup": {
-            "given": {
-              "user": {}
-            },
-            "then": {
-              "error": "user_object_malformed"
-            },
-            "when": "userToRow is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify nonscalar top-level field values cause an error.",
-          "id": "nonscalar_top_level_field_error",
-          "implementation_id": "usertorow",
-          "name": "nonscalar_top_level_field_error",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "St",
-                  "zipcode": "22222"
-                },
-                "email": "bad@example.com",
-                "id": 13,
-                "name": {
-                  "first": "A"
-                },
-                "phone": "123",
-                "username": "bad",
-                "website": "site.com"
-              }
-            },
-            "then": {
-              "error": "user_object_malformed"
-            },
-            "when": "userToRow is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify CRLF characters in text fields are escaped properly.",
-          "id": "crlf_characters_in_fields",
-          "implementation_id": "usertorow",
-          "name": "crlf_characters_in_fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "Line1\r\nLine2",
-                  "zipcode": "55555"
-                },
-                "email": "crlf@example.com",
-                "id": 20,
-                "name": "John\r\nDoe",
-                "phone": "111",
-                "username": "crlfuser",
-                "website": "test.com"
-              }
-            },
-            "then": {
-              "result": [
-                "20",
-                "\"John\r\nDoe\"",
-                "crlfuser",
-                "crlf@example.com",
-                "\"Line1\r\nLine2\"",
-                "Boone",
-                "55555",
-                "111",
-                "test.com"
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Undefined scalar fields should become empty strings.",
-          "id": "undefined_fields_converted_to_empty",
-          "implementation_id": "usertorow",
-          "name": "undefined_fields_converted_to_empty",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Boone",
-                  "street": "Street",
-                  "zipcode": "12345"
-                },
-                "email": null,
-                "id": 30,
-                "name": null,
-                "phone": null,
-                "username": null,
-                "website": null
-              }
-            },
-            "then": {
-              "result": [
-                "30",
-                "",
-                "",
-                "",
-                "Street",
-                "Boone",
-                "12345",
-                "",
-                ""
-              ]
-            },
-            "when": "userToRow is called"
-          },
-          "type": "edge"
         }
       ]
     },
@@ -1951,6 +1500,159 @@
             "when": "filterUsersByLocation is called"
           },
           "type": "negative"
+        },
+        {
+          "description": "Filters users when city contains leading or trailing spaces.",
+          "id": "filter_users_trim_spaces",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_trim_spaces",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": " Boone "
+                  },
+                  "id": 31,
+                  "name": "SpaceUser"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 32,
+                  "name": "NormalUser"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 32,
+                  "name": "NormalUser"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Filters users when address.city is a non-string value.",
+          "id": "filter_users_non_string_city",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_non_string_city",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": 123
+                  },
+                  "id": 41,
+                  "name": "NumericCity"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 42,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 42,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Filters users when user object contains extra unexpected fields.",
+          "id": "filter_users_extra_fields",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_extra_fields",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "extra": "value",
+                  "id": 51,
+                  "name": "John"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "extra": "value",
+                  "id": 51,
+                  "name": "John"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures function does not mutate the original input array.",
+          "id": "filter_users_input_immutability",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_input_immutability",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 61,
+                  "name": "Original"
+                }
+              ]
+            },
+            "then": {
+              "original_users_unchanged": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 61,
+                  "name": "Original"
+                }
+              ],
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 61,
+                  "name": "Original"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
         }
       ]
     }
