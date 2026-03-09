@@ -1188,6 +1188,18 @@
             "when": "csvToJson is executed."
           },
           "type": "negative"
+        },
+        {
+          "description": "Ensures the output JSON array preserves the row order from the CSV.",
+          "id": "csv_to_json_preserves_row_order",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_preserves_row_order",
+          "test_setup": {
+            "given": "CSV with header 'id' and rows '1' then '2'.",
+            "then": "Returned array is [{id:'1'}, {id:'2'}] in the same order.",
+            "when": "csvToJson runs."
+          },
+          "type": "positive"
         }
       ]
     },
