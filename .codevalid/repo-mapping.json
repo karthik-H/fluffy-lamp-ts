@@ -2,7 +2,7 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses response, constructs CSV headers and rows, and writes CSV to persistent storage. It does not filter users by location 'Boone' and still writes a CSV file even when the returned user array is empty, which violates acceptance criteria.",
+        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses response, constructs CSV headers and rows, and writes CSV to persistent storage. It still does not filter users by location 'Boone' before writing the CSV and continues to write a CSV file even when the returned user array is empty, violating acceptance criteria.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
@@ -11,7 +11,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts a single User object into CSV row values. Includes all fields returned from the API and formats them consistently using CSV escaping.",
+        "How_is_it_connected_to_implementation": "Converts a single User object into CSV row values. Includes all fields returned from the API and formats them using CSV escaping.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
@@ -56,7 +56,7 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "No implementation found. No filtering of user data based on location 'Boone' exists anywhere in the codebase.",
+        "How_is_it_connected_to_implementation": "No implementation exists. The codebase contains no logic for filtering user data by the 'Boone' location before saving.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "filterusersbylocation",
