@@ -2,12 +2,12 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Executes an HTTP GET request to the JSONPlaceholder users endpoint, converts the response to CSV format, and writes the CSV file to persistent storage.",
+        "How_is_it_connected_to_implementation": "Executes an HTTP GET request to the JSONPlaceholder users endpoint, filters users by city, converts the filtered response to CSV format, and writes the CSV file to persistent storage.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main",
-        "pseudo_code": "CALL fetch(USERS_URL)\nIF response not OK THEN THROW error\nPARSE response JSON into users array\nDEFINE CSV headers for selected fields\nFOR EACH user IN users:\n    CONVERT user fields to CSV row using userToRow\nJOIN headers and rows into full CSV string\nENSURE data directory exists\nWRITE CSV string to data/users.csv\nPRINT success message",
+        "pseudo_code": "CALL fetch(USERS_URL)\nIF response not OK THEN THROW error\nPARSE response JSON into users array\nCALL filterUsersByLocation(users)\nDEFINE CSV headers for selected fields\nFOR EACH user IN filteredUsers:\n    CONVERT user fields to CSV row using userToRow\nJOIN headers and rows into full CSV string\nENSURE data directory exists\nWRITE CSV string to data/users.csv\nPRINT success message",
         "type": "function"
       },
       {
@@ -56,8 +56,8 @@
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Filters the fetched users to only include those whose address.city is equal to 'Boone' before CSV transformation.",
-        "change_type": "",
+        "How_is_it_connected_to_implementation": "Filters the fetched users to only include those whose address.city equals 'Boone' before CSV transformation.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "filterusersbylocation",
         "name": "filterUsersByLocation",

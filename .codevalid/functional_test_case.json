@@ -13,8 +13,7 @@
             "then": "CSV file is generated with all fields, filtered for location='Boone', and saved to data/users.csv",
             "when": "main() is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "API returns valid users but none with location 'Boone'; CSV file should not be created",
@@ -26,8 +25,7 @@
             "then": "No CSV file is created and system signals no matching data",
             "when": "main() is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "API returns an empty array; no CSV should be created",
@@ -39,8 +37,7 @@
             "then": "System throws an error and does not create or modify the CSV file",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "API returns 404 Not Found",
@@ -52,8 +49,7 @@
             "then": "Function throws an error and no CSV file is created",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Server error during API call",
@@ -65,8 +61,7 @@
             "then": "Function throws an error and no CSV file is written",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "API returns non-parseable JSON body",
@@ -78,8 +73,7 @@
             "then": "Error is thrown and no CSV is created",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "User objects missing some fields; CSV should include headers for all fields and blank values where missing",
@@ -91,8 +85,7 @@
             "then": "CSV file is created with blanks for missing values, preserving field names exactly",
             "when": "main() is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "API returns exactly one user object; CSV should contain one data row",
@@ -104,8 +97,7 @@
             "then": "CSV file is created with a single data row",
             "when": "main() is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Data directory does not exist; system must create it",
@@ -117,8 +109,7 @@
             "then": "Directory is created and CSV file is successfully written",
             "when": "main() is called with valid API response including Boone"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Filesystem prevents directory creation",
@@ -130,8 +121,7 @@
             "then": "System throws an error and no CSV is written",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Write operation to file system fails",
@@ -143,8 +133,7 @@
             "then": "System throws an error and no CSV file is created",
             "when": "main() is called with valid API data"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "API returns a large array of users; system must handle iteration and CSV creation correctly",
@@ -156,8 +145,7 @@
             "then": "System successfully generates the large CSV without truncation or failure",
             "when": "main() is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "User fields contain commas, newlines, or quotes requiring CSV escaping",
@@ -169,8 +157,7 @@
             "then": "System escapes fields properly and CSV remains valid",
             "when": "main() is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "API returns extra fields not previously known; system should include them as columns",
@@ -182,8 +169,7 @@
             "then": "System includes all fields and preserves field names exactly",
             "when": "main() is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Fetch throws a network-level exception; system must error and avoid writing CSV",
@@ -195,8 +181,7 @@
             "then": "System throws an error and does not create or modify any CSV file",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "add"
+          "type": "negative"
         },
         {
           "description": "Existing CSV file must not be modified when API request or processing fails",
@@ -208,8 +193,7 @@
             "then": "The existing CSV file remains unchanged",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "add"
+          "type": "negative"
         },
         {
           "description": "Location field exists but is not a string or does not match expected structure",
@@ -221,8 +205,55 @@
             "then": "System identifies no matching Boone users and does not create a CSV",
             "when": "main() is called"
           },
-          "type": "negative",
-          "update_type": "add"
+          "type": "negative"
+        },
+        {
+          "description": "Users array contains mixed valid and invalid user objects; only valid Boone users are processed",
+          "id": "mixed_valid_and_invalid_user_objects",
+          "implementation_id": "main",
+          "name": "mixed_valid_and_invalid_user_objects",
+          "test_setup": {
+            "given": "API returns some valid user objects and some malformed ones, with at least one valid Boone user",
+            "then": "System filters, skips malformed entries during CSV conversion, and writes CSV with only valid Boone users",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Users array contains non-object entries; system must safely ignore them",
+          "id": "non_object_user_entries",
+          "implementation_id": "main",
+          "name": "non_object_user_entries",
+          "test_setup": {
+            "given": "API returns array items that are not objects (e.g., null, numbers, strings)",
+            "then": "System ignores invalid entries; if Boone users exist among valid ones, CSV is still generated",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "CSV header ordering must match API field ordering as received",
+          "id": "csv_header_order_matches_api",
+          "implementation_id": "main",
+          "name": "csv_header_order_matches_api",
+          "test_setup": {
+            "given": "API returns users with fields in a certain order and includes Boone users",
+            "then": "CSV header row preserves the exact field order from API",
+            "when": "main() is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Field values include leading/trailing spaces; CSV must preserve values without trimming",
+          "id": "preserve_whitespace_in_fields",
+          "implementation_id": "main",
+          "name": "preserve_whitespace_in_fields",
+          "test_setup": {
+            "given": "API returns Boone user fields containing leading or trailing spaces",
+            "then": "CSV preserves whitespace exactly",
+            "when": "main() is called"
+          },
+          "type": "edge"
         }
       ]
     },
@@ -265,8 +296,7 @@
             },
             "when": "userToRow is called with the user object"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Verify that fields with commas are properly escaped.",
@@ -304,8 +334,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "User missing the address object should fail gracefully.",
@@ -328,8 +357,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "User with missing street, city, or zipcode should raise an error.",
@@ -357,8 +385,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "User fields that are null should be converted to empty CSV fields.",
@@ -396,8 +423,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensure that empty string values remain empty in CSV.",
@@ -435,8 +461,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Verify numeric or boolean values are stringified properly.",
@@ -474,8 +499,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Missing required fields should cause a failure.",
@@ -493,8 +517,7 @@
             },
             "when": "userToRow is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Verify embedded quotes are escaped correctly for CSV.",
@@ -532,8 +555,77 @@
             },
             "when": "userToRow is called"
           },
-          "type": "edge",
-          "update_type": "unchchanged"
+          "type": "edge"
+        },
+        {
+          "description": "Verify that newline characters are escaped properly for CSV.",
+          "id": "newline_characters_in_fields",
+          "implementation_id": "usertorow",
+          "name": "newline_characters_in_fields",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone",
+                  "street": "Line1\nLine2",
+                  "zipcode": "11111"
+                },
+                "email": "newline@example.com",
+                "id": 11,
+                "name": "John\nDoe",
+                "phone": "555-0000",
+                "username": "newliner",
+                "website": "site.com"
+              }
+            },
+            "then": {
+              "result": [
+                "11",
+                "\"John\nDoe\"",
+                "newliner",
+                "newline@example.com",
+                "\"Line1\nLine2\"",
+                "Boone",
+                "11111",
+                "555-0000",
+                "site.com"
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that non-scalar values inside the address object cause an error.",
+          "id": "non_scalar_address_fields_error",
+          "implementation_id": "usertorow",
+          "name": "non_scalar_address_fields_error",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": [
+                    "Boone"
+                  ],
+                  "street": {
+                    "value": "Street"
+                  },
+                  "zipcode": 12345
+                },
+                "email": "badaddr@example.com",
+                "id": 12,
+                "name": "User Bad Address",
+                "phone": "000-000",
+                "username": "invalidaddr",
+                "website": "test.com"
+              }
+            },
+            "then": {
+              "error": "invalid_address_fields"
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
         }
       ]
     },
@@ -1035,8 +1127,7 @@
             "then": "[\"John\", \"Doe\", \"30\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Parses a CSV line where a field contains quotes and commas.",
@@ -1048,8 +1139,7 @@
             "then": "[\"John\", \"Doe, Jr.\", \"30\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Parses a CSV line where a field is fully quoted.",
@@ -1061,8 +1151,7 @@
             "then": "[\"Hello World\", \"Test\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Parses a CSV line containing escaped double quotes within a quoted field.",
@@ -1074,8 +1163,7 @@
             "then": "[\"He said \\\"Hello\\\"\", \"World\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Handles an empty input line.",
@@ -1087,8 +1175,7 @@
             "then": "[\"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Handles a line with a trailing comma indicating an empty final field.",
@@ -1100,8 +1187,7 @@
             "then": "[\"John\", \"Doe\", \"30\", \"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Handles a leading comma representing an empty first field.",
@@ -1113,8 +1199,7 @@
             "then": "[\"\", \"John\", \"Doe\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Handles a string containing only commas, producing empty fields.",
@@ -1126,8 +1211,7 @@
             "then": "[\"\", \"\", \"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Error scenario where quotes are opened but not closed.",
@@ -1139,8 +1223,7 @@
             "then": "Function returns [\"Hello,World\"] because pseudo code does not explicitly error; validate behavior",
             "when": "parseCsvLine is called"
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Handles a field made of a single quote character.",
@@ -1152,8 +1235,7 @@
             "then": "[\"\", \"A\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Handles fields with multiple consecutive quote characters.",
@@ -1165,8 +1247,7 @@
             "then": "[\"\\\"Test\\\"\", \"X\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures spaces outside quotes are preserved.",
@@ -1178,8 +1259,7 @@
             "then": "[\"  John  \", \"  Doe  \"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Handles mixture of quoted and unquoted fields.",
@@ -1191,8 +1271,7 @@
             "then": "[\"123\", \"abc\", \"xyz\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Handles very long fields to test boundary conditions.",
@@ -1204,8 +1283,7 @@
             "then": "[\"A.repeat(10000)\", \"B\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Handles a field containing only quotes.",
@@ -1217,8 +1295,7 @@
             "then": "[\"\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures commas inside unquoted fields are treated as delimiters.",
@@ -1230,8 +1307,7 @@
             "then": "[\"A\", \"B\", \"C\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Handles empty quoted fields such as \"\" which should parse as an empty string.",
@@ -1243,8 +1319,7 @@
             "then": "[\"\", \"B\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "add"
+          "type": "edge"
         },
         {
           "description": "Handles a quoted field immediately after a comma.",
@@ -1256,8 +1331,7 @@
             "then": "[\"\", \"Hello\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "positive",
-          "update_type": "add"
+          "type": "positive"
         },
         {
           "description": "Ensures newline literals inside a quoted field are treated as part of the value.",
@@ -1269,8 +1343,55 @@
             "then": "[\"Hello\\nWorld\", \"X\"] is returned",
             "when": "parseCsvLine is called"
           },
-          "type": "edge",
-          "update_type": "add"
+          "type": "edge"
+        },
+        {
+          "description": "Handles a field that contains only whitespace.",
+          "id": "parse_csv_whitespace_only_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_whitespace_only_field",
+          "test_setup": {
+            "given": "line = \"   ,B\"",
+            "then": "[\"   \", \"B\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures commas inside quotes are not treated as delimiters.",
+          "id": "parse_csv_comma_inside_quotes_not_delimiter",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_comma_inside_quotes_not_delimiter",
+          "test_setup": {
+            "given": "line = \"\\\"A,B,C\\\",D\"",
+            "then": "[\"A,B,C\", \"D\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles a field that starts with a quote but contains an illegal quote in the middle.",
+          "id": "parse_csv_mismatched_quotes_middle_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_mismatched_quotes_middle_field",
+          "test_setup": {
+            "given": "line = \"A,\\\"B\"C, D\"",
+            "then": "Function returns [\"A\", \"B\"C\", \" D\"] per pseudo-code behavior",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles null input by treating it as an empty string.",
+          "id": "parse_csv_null_input",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_null_input",
+          "test_setup": {
+            "given": "line = null",
+            "then": "[\"\"] is returned or behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
         }
       ]
     },
