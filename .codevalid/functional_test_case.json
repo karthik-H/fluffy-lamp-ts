@@ -859,6 +859,54 @@
             "when": "escapeCsvField is called"
           },
           "type": "positive"
+        },
+        {
+          "description": "Ensures \\r triggers wrapping in quotes",
+          "id": "escape_carriage_return",
+          "implementation_id": "escapecsvfield",
+          "name": "escape carriage return",
+          "test_setup": {
+            "given": "input = \"Hello\rWorld\"",
+            "then": "function returns \"Hello\rWorld\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "CRLF newline requires wrapping",
+          "id": "escape_windows_newline",
+          "implementation_id": "escapecsvfield",
+          "name": "escape windows newline",
+          "test_setup": {
+            "given": "input = \"Hello\r\nWorld\"",
+            "then": "function returns \"Hello\r\nWorld\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures NaN converts to string 'NaN'",
+          "id": "nan_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "nan_to_string",
+          "test_setup": {
+            "given": "input = NaN",
+            "then": "function returns NaN",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures Infinity converts to 'Infinity'",
+          "id": "infinity_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "infinity_to_string",
+          "test_setup": {
+            "given": "input = Infinity",
+            "then": "function returns Infinity",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
         }
       ]
     },
@@ -875,8 +923,7 @@
             "then": "An array of two JSON objects is returned with keys mapped to header names.",
             "when": "csvToJson is called with the CSV string."
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Ensures the function correctly parses a CSV with a header and a single data row.",
@@ -888,8 +935,7 @@
             "then": "Returns an array containing a single mapped JSON object.",
             "when": "csvToJson is executed."
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Function should return an empty array when the CSV input is an empty string.",
@@ -901,8 +947,7 @@
             "then": "Returns an empty array.",
             "when": "The function is executed."
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Function should return an empty array when only header exists but no data rows.",
@@ -914,8 +959,7 @@
             "then": "Returns an empty array because there are less than 2 non\u2011empty lines.",
             "when": "csvToJson is called."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures trailing empty lines are ignored.",
@@ -927,8 +971,7 @@
             "then": "Returns an empty array because only one valid line exists.",
             "when": "csvToJson is executed."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures whitespace-only lines are treated as empty and ignored.",
@@ -940,8 +983,7 @@
             "then": "Returns one JSON object mapped correctly to the header.",
             "when": "The function executes."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "If a row has more values than headers, extra values should be ignored based on mapping logic.",
@@ -953,8 +995,7 @@
             "then": "Only 'id' and 'name' are mapped and returned; 'Extra' is ignored.",
             "when": "Function is called."
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "If a row has fewer values than headers, missing keys should be assigned empty strings or undefined behavior based on mapping logic.",
@@ -966,8 +1007,7 @@
             "then": "Returned object includes id='1', name='John', and email set to an empty string.",
             "when": "Function executes."
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Ensures special characters in CSV fields (commas inside quotes) are properly parsed.",
@@ -979,8 +1019,7 @@
             "then": "Value for name is 'John, Doe'.",
             "when": "csvToJson executes."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures Unicode characters are parsed correctly.",
@@ -992,8 +1031,7 @@
             "then": "Returned JSON correctly preserves all characters.",
             "when": "Function is executed."
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Ensures headers with leading/trailing spaces are treated as literal header keys.",
@@ -1005,8 +1043,7 @@
             "then": "Returned JSON uses exact spaced header keys.",
             "when": "Function runs."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures value trimming does not occur unless implemented.",
@@ -1018,8 +1055,7 @@
             "then": "Spaces are preserved in returned JSON.",
             "when": "Function executes."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Handles a CSV with no commas; each row becomes a single-column value.",
@@ -1031,8 +1067,7 @@
             "then": "Returns JSON array with one object { id: '123' }.",
             "when": "Function runs."
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Ensures a CSV consisting entirely of empty or whitespace lines returns an empty array.",
@@ -1044,8 +1079,7 @@
             "then": "Returns an empty array.",
             "when": "csvToJson is called."
           },
-          "type": "negative",
-          "update_type": "unchanged"
+          "type": "negative"
         },
         {
           "description": "Verifies performance and correctness with a large CSV dataset.",
@@ -1057,8 +1091,7 @@
             "then": "Returns JSON array with exactly the same number of objects as rows.",
             "when": "Function executes."
           },
-          "type": "positive",
-          "update_type": "unchanged"
+          "type": "positive"
         },
         {
           "description": "Verifies behavior when duplicate headers exist.",
@@ -1070,12 +1103,11 @@
             "then": "Later duplicate keys overwrite earlier ones in returned JSON.",
             "when": "Function runs."
           },
-          "type": "edge",
-          "update_type": "unchanged"
+          "type": "edge"
         },
         {
           "description": "Ensures behavior when header exists but is an empty string.",
-          "id": "csv_to_json_header_empty_string",
+          "id": "csv_to_json_header_empty_string_mcvc",
           "implementation_id": "csvtojson",
           "name": "csv_to_json_header_empty_string",
           "test_setup": {
@@ -1083,12 +1115,11 @@
             "then": "Returns array with one object containing a single key '' mapped to 'test'.",
             "when": "csvToJson runs."
           },
-          "type": "edge",
-          "update_type": "add"
+          "type": "edge"
         },
         {
           "description": "Ensures rows that contain empty comma-separated values map to empty strings.",
-          "id": "csv_to_json_row_empty_values",
+          "id": "csv_to_json_row_empty_values_t2cx",
           "implementation_id": "csvtojson",
           "name": "csv_to_json_row_empty_values",
           "test_setup": {
@@ -1096,12 +1127,11 @@
             "then": "Object returned is { a:'', b:'', c:'' }.",
             "when": "csvToJson runs."
           },
-          "type": "edge",
-          "update_type": "add"
+          "type": "edge"
         },
         {
           "description": "Handles quoted values containing newline characters.",
-          "id": "csv_to_json_quoted_multiline_value",
+          "id": "csv_to_json_quoted_multiline_value_pwd9",
           "implementation_id": "csvtojson",
           "name": "csv_to_json_quoted_multiline_value",
           "test_setup": {
@@ -1109,8 +1139,55 @@
             "then": "JSON preserves embedded newline inside value.",
             "when": "csvToJson runs."
           },
-          "type": "edge",
-          "update_type": "add"
+          "type": "edge"
+        },
+        {
+          "description": "Ensures CSV using Windows CRLF line endings is parsed correctly.",
+          "id": "csv_to_json_handles_crlf_newlines",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_handles_crlf_newlines",
+          "test_setup": {
+            "given": "A CSV where lines end with \\r\\n.",
+            "then": "Lines are split correctly and mapped into JSON objects.",
+            "when": "csvToJson is executed."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures UTF\u20118 BOM-prefixed CSV headers are handled.",
+          "id": "csv_to_json_bom_header_support",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_bom_header_support",
+          "test_setup": {
+            "given": "A CSV whose header begins with a UTF\u20118 BOM character.",
+            "then": "The BOM is treated as part of the header key and mapped literally.",
+            "when": "csvToJson executes."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Checks behavior when a data row contains unmatched quotes.",
+          "id": "csv_to_json_unbalanced_quotes",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_unbalanced_quotes",
+          "test_setup": {
+            "given": "A CSV row such as '1,\"John Doe'.",
+            "then": "Row is parsed literally based on split logic and returned without special quote handling.",
+            "when": "csvToJson executes."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures function handles non-string input safely.",
+          "id": "csv_to_json_non_string_input",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_non_string_input",
+          "test_setup": {
+            "given": "Input is not a string (e.g., null or number).",
+            "then": "Function returns an empty array based on failure to split into valid lines.",
+            "when": "csvToJson is executed."
+          },
+          "type": "negative"
         }
       ]
     },
@@ -1976,6 +2053,84 @@
                     "city": "Boone"
                   },
                   "id": 1,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Skips users whose address field is not an object.",
+          "id": "filter_users_address_not_object",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_address_not_object",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": "not-an-object",
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles users whose city value is an array instead of a string.",
+          "id": "filter_users_city_array_value",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_array_value",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": [
+                      "Boone"
+                    ]
+                  },
+                  "id": 1,
+                  "name": "Test"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
                   "name": "Valid"
                 }
               ]

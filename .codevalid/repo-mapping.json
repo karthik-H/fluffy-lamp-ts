@@ -2,61 +2,61 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses response, constructs CSV headers/rows, and writes CSV to persistent storage. Does NOT implement filtering for location 'Boone' and writes CSV even if response array is empty.",
+        "change_type": "updated",
         "file_path": "src/fetch-users.ts",
         "id": "main",
         "name": "main",
-        "pseudo_code": "",
+        "pseudo_code": "FUNCTION main:\n    SEND HTTP GET request to USERS_URL\n    IF response not OK: THROW error\n    PARSE JSON into users array\n    DEFINE headers list\n    MAP users to CSV rows using userToRow\n    JOIN headers and rows into CSV string\n    CREATE data directory if missing\n    WRITE CSV string to CSV_PATH\n    LOG saved message",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Converts a single User object into a CSV row string array. Ensures all required fields from the API user object are included.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "usertorow",
         "name": "userToRow",
-        "pseudo_code": "",
+        "pseudo_code": "FUNCTION userToRow(u):\n    RETURN array of stringified user fields\n    APPLY escapeCsvField to textual fields",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Escapes CSV fields with commas, quotes, or newlines. Supports proper CSV formatting.",
+        "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
         "id": "escapecsvfield",
         "name": "escapeCsvField",
-        "pseudo_code": "",
+        "pseudo_code": "FUNCTION escapeCsvField(value):\n    CONVERT value to string\n    IF string contains ',', '\"', or '\\n':\n        RETURN quoted version with escaped quotes\n    ELSE RETURN string",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Exposes saved CSV data through an HTTP API endpoint. Loads CSV, converts it to JSON using csvToJson, and returns it.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "get_api_users",
         "name": "GET /api/users",
-        "pseudo_code": "",
+        "pseudo_code": "ENDPOINT GET /api/users:\n    IF CSV file missing: RETURN 404\n    READ CSV file\n    PARSE CSV to JSON array\n    RETURN JSON array",
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Parses saved CSV back into JSON objects for exposure through GET /api/users.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "csvtojson",
         "name": "csvToJson",
-        "pseudo_code": "",
+        "pseudo_code": "FUNCTION csvToJson(csv):\n    SPLIT csv into lines and filter empty\n    IF fewer than 2 lines: RETURN empty array\n    PARSE header line\n    FOR each remaining line:\n        PARSE values\n        BUILD object mapping headers\u2192values\n    RETURN array of objects",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
-        "change_type": "removed",
+        "How_is_it_connected_to_implementation": "Low-level CSV parsing utility used by csvToJson.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
         "id": "parsecsvline",
         "name": "parseCsvLine",
-        "pseudo_code": "",
+        "pseudo_code": "FUNCTION parseCsvLine(line):\n    ITERATE chars handling quoted/unquoted segments\n    SPLIT fields respecting CSV quote rules\n    RETURN array of parsed fields",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Code not found in repository; implementation no longer exists.",
+        "How_is_it_connected_to_implementation": "No function exists in repository. Location filtering is not implemented anywhere.",
         "change_type": "removed",
         "file_path": "src/fetch-users.ts",
         "id": "filterusersbylocation",
@@ -66,15 +66,8 @@
       }
     ],
     "missing_implementations": [
-      "System sends an HTTP GET request to https://jsonplaceholder.typicode.com/users.",
-      "System receives an array of user objects in the response.",
-      "Each user object in the response is included as a row in the resulting CSV file.",
-      "CSV file contains columns corresponding to each field in the user JSON object (e.g., id, name, username, email, etc.).",
-      "CSV column names are identical to the field names in the JSON object.",
-      "CSV file is saved to persistent storage and is accessible for later retrieval.",
-      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error.",
-      "No user data is omitted or transformed; all fields from the API response are included.",
-      "before saving information check filter for data with location as Boone"
+      "before saving information check filter for data with location as Boone",
+      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error."
     ]
   }
 }
