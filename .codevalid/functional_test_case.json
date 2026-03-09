@@ -956,7 +956,7 @@
           "name": "csv_to_json_only_header_no_rows",
           "test_setup": {
             "given": "A CSV string containing only one header line.",
-            "then": "Returns an empty array because there are less than 2 non\u2011empty lines.",
+            "then": "Returns an empty array because there are less than 2 non-empty lines.",
             "when": "csvToJson is called."
           },
           "type": "edge"
@@ -2126,6 +2126,91 @@
                   },
                   "id": 1,
                   "name": "Test"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Valid"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures filtered results preserve original order of matching users.",
+          "id": "filter_users_preserves_order",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_preserves_order",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "Late"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Early"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 3,
+                  "name": "Late"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Early"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles users whose city value is a boolean.",
+          "id": "filter_users_city_boolean_value",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_boolean_value",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": true
+                  },
+                  "id": 1,
+                  "name": "Bad"
                 },
                 {
                   "address": {
