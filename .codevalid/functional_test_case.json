@@ -358,7 +358,23 @@
               }
             },
             "then": {
-              "result": "Fields containing commas or quotes are wrapped and escaped as per escapeCsvField rules"
+              "result": [
+                "2",
+                "\"John \"\"JD\"\" Doe\"",
+                "\"jd,doe\"",
+                "john@example.com",
+                "\"Main, Street\"",
+                "\"Suite \"\"A\"\"\"",
+                "Boone",
+                "00000",
+                "10.0",
+                "20.0",
+                "555-5555",
+                "test.com",
+                "Test Co.",
+                "\"Hello, \"\"world\"\"\"",
+                "testing"
+              ]
             },
             "when": "userToRow is called with the user object"
           },
@@ -383,7 +399,23 @@
               }
             },
             "then": {
-              "result": "Missing fields are returned as empty strings in the row"
+              "result": [
+                "3",
+                "No Address User",
+                "nouser",
+                "none@example.com",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
             },
             "when": "userToRow is called with the incomplete user object"
           },
@@ -408,7 +440,23 @@
               }
             },
             "then": {
-              "result": "All null values are stringified as empty values in the CSV row"
+              "result": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
             },
             "when": "userToRow is called"
           },
@@ -434,7 +482,109 @@
               }
             },
             "then": {
-              "result": "Only known fields are returned; extra fields are ignored"
+              "result": [
+                "4",
+                "Extra Fields",
+                "extra",
+                "extra@example.com",
+                "",
+                "",
+                "Boone",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify behavior when user object is empty.",
+          "id": "empty_user_object",
+          "implementation_id": "usertorow",
+          "name": "empty_user_object",
+          "test_setup": {
+            "given": {
+              "user": {}
+            },
+            "then": {
+              "result": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify whitespace values are preserved.",
+          "id": "whitespace_only_fields",
+          "implementation_id": "usertorow",
+          "name": "whitespace_only_fields",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": " ",
+                  "geo": {
+                    "lat": " ",
+                    "lng": " "
+                  },
+                  "street": " ",
+                  "suite": " ",
+                  "zipcode": " "
+                },
+                "company": {
+                  "bs": " ",
+                  "catchPhrase": " ",
+                  "name": " "
+                },
+                "email": " ",
+                "id": " ",
+                "name": " ",
+                "phone": " ",
+                "username": " ",
+                "website": " "
+              }
+            },
+            "then": {
+              "result": [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+              ]
             },
             "when": "userToRow is called"
           },
@@ -1795,6 +1945,78 @@
             "when": "filterUsersByLocation is called"
           },
           "type": "edge"
+        },
+        {
+          "description": "Does not match uppercase 'BOONE' due to case sensitivity.",
+          "id": "filter_users_uppercase_city",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_uppercase_city",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "BOONE"
+                  },
+                  "id": 71,
+                  "name": "Upper"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 72,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 72,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Skips null user objects.",
+          "id": "filter_users_null_user_object",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_null_user_object",
+          "test_setup": {
+            "given": {
+              "users": [
+                null,
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 81,
+                  "name": "ValidUser"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 81,
+                  "name": "ValidUser"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
         }
       ]
     }
