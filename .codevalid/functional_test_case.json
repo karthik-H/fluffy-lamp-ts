@@ -1,427 +1,436 @@
 {
   "function": [
     {
-      "implementation_id": "main_fetch_users_and_save_csv",
+      "implementation_id": "main",
       "test_cases": [
         {
-          "description": "Verify that the function fetches user data from the API, converts it to CSV with proper headers and values, and saves the CSV file to the expected directory.",
-          "id": "TC1_fetch_users_success",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "Fetch users successfully and save CSV",
+          "description": "Valid API response with users; CSV is generated and saved",
+          "id": "successful_fetch_and_save_csv",
+          "implementation_id": "main",
+          "name": "successful_fetch_and_save_csv",
           "test_setup": {
-            "given": "API endpoint https://jsonplaceholder.typicode.com/users returns an array of 10 user objects with standard fields (id, name, username, email, etc.). The data directory does not exist.",
-            "then": "A CSV file is created in the data directory containing all user objects as rows with matching headers. A success log is produced.",
+            "given": "API returns an array of valid user objects including location 'Boone'",
+            "then": "CSV file is generated with all fields, filtered for location='Boone', and saved to data/users.csv",
             "when": "main() is called"
           },
           "type": "positive"
         },
         {
-          "description": "Ensure that when the API request fails (e.g., due to network error), the function throws an error and does not create or modify any CSV file.",
-          "id": "TC2_fetch_users_api_failure",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "API request fails with network error",
+          "description": "API returns valid users but none with location 'Boone'; CSV file should not be created",
+          "id": "successful_fetch_no_boone_users",
+          "implementation_id": "main",
+          "name": "successful_fetch_no_boone_users",
           "test_setup": {
-            "given": "API endpoint is unreachable (e.g., network error, DNS failure).",
-            "then": "An error is thrown, and no CSV file is created or modified. No success log is produced.",
-            "when": "main() is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Test the case where the API returns an empty array; no CSV file should be created, and an error should be thrown.",
-          "id": "TC3_fetch_users_api_returns_empty_array",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "API returns empty users array",
-          "test_setup": {
-            "given": "API endpoint returns an empty array ([]) as a valid JSON response.",
-            "then": "No CSV file is created or modified. An error is thrown indicating no data to process.",
-            "when": "main() is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Test that if user objects have missing fields, the CSV still includes columns for all fields present across users, and missing values are left empty.",
-          "id": "TC4_fetch_users_partial_response",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "API returns user objects with missing fields",
-          "test_setup": {
-            "given": "API endpoint returns an array of user objects where some objects have additional or missing fields.",
-            "then": "CSV file is created with columns for all unique fields present in any user object. Rows have empty values for missing fields.",
-            "when": "main() is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify function behavior when the data directory already exists; file should still be saved successfully.",
-          "id": "TC5_data_directory_already_exists",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "Data directory exists prior to execution",
-          "test_setup": {
-            "given": "The data directory already exists and is writable.",
-            "then": "CSV file is created or overwritten in the data directory. A success log is produced.",
+            "given": "API returns an array of users but none contain location 'Boone'",
+            "then": "No CSV file is created and system signals no matching data",
             "when": "main() is called"
           },
           "type": "positive"
         },
         {
-          "description": "Test that if writing the CSV file fails (e.g., due to permission denied), an error is thrown and no partial file remains.",
-          "id": "TC6_csv_file_write_failure",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "CSV file write fails due to permission error",
+          "description": "API returns an empty array; no CSV should be created",
+          "id": "response_empty_array",
+          "implementation_id": "main",
+          "name": "response_empty_array",
           "test_setup": {
-            "given": "API returns valid users array but the data directory is not writable (e.g., permission denied).",
-            "then": "An error is thrown during file write operation and no CSV file is created or modified.",
+            "given": "API responds with HTTP 200 but body is an empty array",
+            "then": "System throws an error and does not create or modify the CSV file",
             "when": "main() is called"
           },
           "type": "negative"
         },
         {
-          "description": "Verify that if the API returns malformed JSON, the function throws an error and does not create or modify any CSV file.",
-          "id": "TC7_api_returns_malformed_json",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "API returns malformed JSON",
+          "description": "API returns 404 Not Found",
+          "id": "api_failure_404",
+          "implementation_id": "main",
+          "name": "api_failure_404",
           "test_setup": {
-            "given": "API endpoint returns an invalid (malformed) JSON response.",
-            "then": "An error is thrown during JSON parsing. No CSV file is created or modified.",
+            "given": "fetch returns status 404",
+            "then": "Function throws an error and no CSV file is created",
             "when": "main() is called"
           },
           "type": "negative"
         },
         {
-          "description": "Test the case where the API returns a JSON object instead of an array; function should throw an error and not create a CSV file.",
-          "id": "TC8_api_returns_non_array_json",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "API returns non-array JSON response",
+          "description": "Server error during API call",
+          "id": "api_failure_500",
+          "implementation_id": "main",
+          "name": "api_failure_500",
           "test_setup": {
-            "given": "API endpoint returns a valid JSON object (not an array).",
-            "then": "An error is thrown indicating unexpected response format. No CSV file is created or modified.",
+            "given": "fetch returns status 500",
+            "then": "Function throws an error and no CSV file is written",
             "when": "main() is called"
           },
           "type": "negative"
         },
         {
-          "description": "Ensure that after successful CSV file creation, a success message is logged.",
-          "id": "TC9_log_success_after_csv_write",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "Log success after CSV file is written",
+          "description": "API returns non-parseable JSON body",
+          "id": "malformed_json_response",
+          "implementation_id": "main",
+          "name": "malformed_json_response",
           "test_setup": {
-            "given": "API returns valid user data and the file is written successfully.",
-            "then": "A success log message is produced indicating the CSV file has been saved.",
+            "given": "fetch returns OK status but JSON parsing fails",
+            "then": "Error is thrown and no CSV is created",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "User objects missing some fields; CSV should include headers for all fields and blank values where missing",
+          "id": "partial_user_objects_missing_fields",
+          "implementation_id": "main",
+          "name": "partial_user_objects_missing_fields",
+          "test_setup": {
+            "given": "Users contain missing optional fields but location='Boone'",
+            "then": "CSV file is created with blanks for missing values, preserving field names exactly",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "API returns exactly one user object; CSV should contain one data row",
+          "id": "single_user_record",
+          "implementation_id": "main",
+          "name": "single_user_record",
+          "test_setup": {
+            "given": "API provides one user with location='Boone'",
+            "then": "CSV file is created with a single data row",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Data directory does not exist; system must create it",
+          "id": "directory_creation_required",
+          "implementation_id": "main",
+          "name": "directory_creation_required",
+          "test_setup": {
+            "given": "data/ directory is absent",
+            "then": "Directory is created and CSV file is successfully written",
+            "when": "main() is called with valid API response including Boone"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Filesystem prevents directory creation",
+          "id": "directory_creation_failure",
+          "implementation_id": "main",
+          "name": "directory_creation_failure",
+          "test_setup": {
+            "given": "data/ directory cannot be created due to permission issues",
+            "then": "System throws an error and no CSV is written",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Write operation to file system fails",
+          "id": "csv_write_failure",
+          "implementation_id": "main",
+          "name": "csv_write_failure",
+          "test_setup": {
+            "given": "File write operation fails due to lack of write permission",
+            "then": "System throws an error and no CSV file is created",
+            "when": "main() is called with valid API data"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "API returns a large array of users; system must handle iteration and CSV creation correctly",
+          "id": "large_user_dataset",
+          "implementation_id": "main",
+          "name": "large_user_dataset",
+          "test_setup": {
+            "given": "API returns a dataset of thousands of users including Boone",
+            "then": "System successfully generates the large CSV without truncation or failure",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "User fields contain commas, newlines, or quotes requiring CSV escaping",
+          "id": "special_characters_in_user_fields",
+          "implementation_id": "main",
+          "name": "special_characters_in_user_fields",
+          "test_setup": {
+            "given": "API response includes Boone user records with special characters",
+            "then": "System escapes fields properly and CSV remains valid",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "API returns extra fields not previously known; system should include them as columns",
+          "id": "unexpected_additional_fields_in_response",
+          "implementation_id": "main",
+          "name": "unexpected_additional_fields_in_response",
+          "test_setup": {
+            "given": "API returns user objects with new fields including Boone",
+            "then": "System includes all fields and preserves field names exactly",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Fetch throws a network-level exception; system must error and avoid writing CSV",
+          "id": "network_timeout_or_fetch_exception",
+          "implementation_id": "main",
+          "name": "network_timeout_or_fetch_exception",
+          "test_setup": {
+            "given": "The fetch call throws due to network timeout or connectivity issue",
+            "then": "System throws an error and does not create or modify any CSV file",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Existing CSV file must not be modified when API request or processing fails",
+          "id": "existing_csv_not_modified_on_failure",
+          "implementation_id": "main",
+          "name": "existing_csv_not_modified_on_failure",
+          "test_setup": {
+            "given": "An existing data/users.csv file is present and API returns an error",
+            "then": "The existing CSV file remains unchanged",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Location field exists but is not a string or does not match expected structure",
+          "id": "invalid_location_field_structure",
+          "implementation_id": "main",
+          "name": "invalid_location_field_structure",
+          "test_setup": {
+            "given": "API returns users where location is an object or null instead of a string and therefore cannot match 'Boone'",
+            "then": "System identifies no matching Boone users and does not create a CSV",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Users array contains mixed valid and invalid user objects; only valid Boone users are processed",
+          "id": "mixed_valid_and_invalid_user_objects",
+          "implementation_id": "main",
+          "name": "mixed_valid_and_invalid_user_objects",
+          "test_setup": {
+            "given": "API returns some valid user objects and some malformed ones, with at least one valid Boone user",
+            "then": "System filters, skips malformed entries during CSV conversion, and writes CSV with only valid Boone users",
+            "when": "main() is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Users array contains non-object entries; system must safely ignore them",
+          "id": "non_object_user_entries",
+          "implementation_id": "main",
+          "name": "non_object_user_entries",
+          "test_setup": {
+            "given": "API returns array items that are not objects (e.g., null, numbers, strings)",
+            "then": "System ignores invalid entries; if Boone users exist among valid ones, CSV is still generated",
+            "when": "main() is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "CSV header ordering must match API field ordering as received",
+          "id": "csv_header_order_matches_api",
+          "implementation_id": "main",
+          "name": "csv_header_order_matches_api",
+          "test_setup": {
+            "given": "API returns users with fields in a certain order and includes Boone users",
+            "then": "CSV header row preserves the exact field order from API",
             "when": "main() is called"
           },
           "type": "positive"
         },
         {
-          "description": "Verify that nested fields (e.g., address, company) are included in CSV using an appropriate representation (e.g., JSON stringified).",
-          "id": "TC10_users_with_nested_fields",
-          "implementation_id": "main_fetch_users_and_save_csv",
-          "name": "API returns users with nested JSON fields",
+          "description": "Field values include leading/trailing spaces; CSV must preserve values without trimming",
+          "id": "preserve_whitespace_in_fields",
+          "implementation_id": "main",
+          "name": "preserve_whitespace_in_fields",
           "test_setup": {
-            "given": "API endpoint returns user objects with nested fields (objects or arrays, e.g., address, company).",
-            "then": "CSV file includes columns for nested fields, with values properly stringified or serialized.",
+            "given": "API returns Boone user fields containing leading or trailing spaces",
+            "then": "CSV preserves whitespace exactly",
             "when": "main() is called"
           },
           "type": "edge"
+        },
+        {
+          "description": "API returns non-array JSON; system must treat it as invalid",
+          "id": "response_not_array",
+          "implementation_id": "main",
+          "name": "response_not_array",
+          "test_setup": {
+            "given": "API returns an object instead of an array",
+            "then": "System throws an error and does not create or modify the CSV file",
+            "when": "main() is called"
+          },
+          "type": "negative"
         }
-      ],
-      "test_path": ".codevalid/tests/task_2938716450_20260225110000/main_fetch_users_and_save_csv.ts"
+      ]
     },
     {
-      "implementation_id": "user_to_row_csv_conversion",
+      "implementation_id": "usertorow",
       "test_cases": [
         {
-          "description": "Converts a user object with all fields populated into an array suitable for CSV row.",
-          "id": "tc_001_valid_user_all_fields",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Valid user with all fields present",
+          "description": "Verify that a fully populated user object with all JSONPlaceholder fields is correctly mapped to a CSV row and all string fields are preserved.",
+          "id": "valid_user_happy_path",
+          "implementation_id": "usertorow",
+          "name": "valid_user_happy_path",
           "test_setup": {
             "given": {
               "user": {
                 "address": {
-                  "city": "Springfield",
-                  "street": "123 Main St",
-                  "zipcode": "12345"
+                  "city": "Gwenborough",
+                  "geo": {
+                    "lat": "-37.3159",
+                    "lng": "81.1496"
+                  },
+                  "street": "Kulas Light",
+                  "suite": "Apt. 556",
+                  "zipcode": "92998-3874"
                 },
-                "email": "john@example.com",
+                "company": {
+                  "bs": "harness real-time e-markets",
+                  "catchPhrase": "Multi-layered client-server neural-net",
+                  "name": "Romaguera-Crona"
+                },
+                "email": "Sincere@april.biz",
                 "id": 1,
-                "name": "John Doe",
-                "phone": "555-1234",
-                "username": "johndoe",
-                "website": "johndoe.com"
+                "name": "Leanne Graham",
+                "phone": "1-770-736-8031 x56442",
+                "username": "Bret",
+                "website": "hildegard.org"
               }
             },
-            "then": [
-              1,
-              "John Doe",
-              "johndoe",
-              "john@example.com",
-              "123 Main St",
-              "Springfield",
-              "12345",
-              "555-1234",
-              "johndoe.com"
-            ],
-            "when": "userToRow(user) is called"
+            "then": {
+              "result": [
+                "1",
+                "Leanne Graham",
+                "Bret",
+                "Sincere@april.biz",
+                "Kulas Light",
+                "Apt. 556",
+                "Gwenborough",
+                "92998-3874",
+                "-37.3159",
+                "81.1496",
+                "1-770-736-8031 x56442",
+                "hildegard.org",
+                "Romaguera-Crona",
+                "Multi-layered client-server neural-net",
+                "harness real-time e-markets"
+              ]
+            },
+            "when": "userToRow is called with the user object"
           },
           "type": "positive"
         },
         {
-          "description": "Ensures fields containing commas are properly escaped for CSV.",
-          "id": "tc_002_escape_commas",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "User fields contain commas",
+          "description": "Verify fields containing commas or quotes are escaped correctly.",
+          "id": "escape_special_characters_in_fields",
+          "implementation_id": "usertorow",
+          "name": "escape_special_characters_in_fields",
           "test_setup": {
             "given": {
               "user": {
                 "address": {
-                  "city": "New York",
-                  "street": "456 Elm St, Apt 2",
-                  "zipcode": "10001"
-                },
-                "email": "jane,smith@example.com",
-                "id": 2,
-                "name": "Jane, Smith",
-                "phone": "555-5678",
-                "username": "jane,smith",
-                "website": "janesmith.com"
-              }
-            },
-            "then": [
-              2,
-              "\"Jane, Smith\"",
-              "\"jane,smith\"",
-              "\"jane,smith@example.com\"",
-              "\"456 Elm St, Apt 2\"",
-              "New York",
-              "10001",
-              "555-5678",
-              "janesmith.com"
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Ensures fields containing double quotes are properly escaped for CSV.",
-          "id": "tc_003_escape_quotes",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "User fields contain quotes",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Quoteville",
-                  "street": "789 Oak St",
-                  "zipcode": "22222"
-                },
-                "email": "alice\"ace\"@example.com",
-                "id": 3,
-                "name": "Alice \"The Ace\" Doe",
-                "phone": "555-9999",
-                "username": "alice\"ace\"",
-                "website": "aliceace.com"
-              }
-            },
-            "then": [
-              3,
-              "\"Alice \"\"The Ace\"\" Doe\"",
-              "\"alice\"\"ace\"\"\"",
-              "\"alice\"\"ace\"\"@example.com\"",
-              "789 Oak St",
-              "Quoteville",
-              "22222",
-              "555-9999",
-              "aliceace.com"
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests behavior when the 'address' field is missing.",
-          "id": "tc_004_missing_address",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Missing address field",
-          "test_setup": {
-            "given": {
-              "user": {
-                "email": "bob@example.com",
-                "id": 4,
-                "name": "Bob",
-                "phone": "555-0000",
-                "username": "bobby",
-                "website": "bob.com"
-              }
-            },
-            "then": [
-              4,
-              "Bob",
-              "bobby",
-              "bob@example.com",
-              "",
-              "",
-              "",
-              "555-0000",
-              "bob.com"
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests behavior when 'phone' and 'website' fields are not present.",
-          "id": "tc_005_missing_optional_fields",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Missing phone and website fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Silicon Valley",
-                  "street": "1 Hacker Way",
-                  "zipcode": "94043"
-                },
-                "email": "eve@example.com",
-                "id": 5,
-                "name": "Eve",
-                "username": "eve"
-              }
-            },
-            "then": [
-              5,
-              "Eve",
-              "eve",
-              "eve@example.com",
-              "1 Hacker Way",
-              "Silicon Valley",
-              "94043",
-              "",
-              ""
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests how the function handles a user object with id equal to zero.",
-          "id": "tc_006_id_is_zero",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "User id is zero",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Nowhere",
-                  "street": "Zero St",
+                  "city": "Boone",
+                  "geo": {
+                    "lat": "10.0",
+                    "lng": "20.0"
+                  },
+                  "street": "Main, Street",
+                  "suite": "Suite \"A\"",
                   "zipcode": "00000"
                 },
-                "email": "zero@example.com",
-                "id": 0,
-                "name": "Zero",
-                "phone": "000-0000",
-                "username": "zero",
-                "website": "zero.com"
+                "company": {
+                  "bs": "testing",
+                  "catchPhrase": "Hello, \"world\"",
+                  "name": "Test Co."
+                },
+                "email": "john@example.com",
+                "id": 2,
+                "name": "John \"JD\" Doe",
+                "phone": "555-5555",
+                "username": "jd,doe",
+                "website": "test.com"
               }
             },
-            "then": [
-              0,
-              "Zero",
-              "zero",
-              "zero@example.com",
-              "Zero St",
-              "Nowhere",
-              "00000",
-              "000-0000",
-              "zero.com"
-            ],
-            "when": "userToRow(user) is called"
+            "then": {
+              "result": [
+                "2",
+                "\"John \"\"JD\"\" Doe\"",
+                "\"jd,doe\"",
+                "john@example.com",
+                "\"Main, Street\"",
+                "\"Suite \"\"A\"\"\"",
+                "Boone",
+                "00000",
+                "10.0",
+                "20.0",
+                "555-5555",
+                "test.com",
+                "Test Co.",
+                "\"Hello, \"\"world\"\"\"",
+                "testing"
+              ]
+            },
+            "when": "userToRow is called with the user object"
           },
           "type": "edge"
         },
         {
-          "description": "Tests behavior when the 'id' field is missing.",
-          "id": "tc_007_missing_id",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Missing id field",
+          "description": "Verify behavior when optional nested fields are missing.",
+          "id": "missing_optional_fields",
+          "implementation_id": "usertorow",
+          "name": "missing_optional_fields",
           "test_setup": {
             "given": {
               "user": {
-                "address": {
-                  "city": "Void",
-                  "street": "No ID St",
-                  "zipcode": "99999"
-                },
-                "email": "noid@example.com",
-                "name": "NoID",
-                "phone": "999-9999",
-                "username": "noid",
-                "website": "noid.com"
-              }
-            },
-            "then": [
-              null,
-              "NoID",
-              "noid",
-              "noid@example.com",
-              "No ID St",
-              "Void",
-              "99999",
-              "999-9999",
-              "noid.com"
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Tests behavior when string fields are empty.",
-          "id": "tc_008_empty_strings",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Fields with empty strings",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "",
-                  "street": "",
-                  "zipcode": ""
-                },
-                "email": "",
-                "id": 6,
-                "name": "",
+                "address": {},
+                "company": {},
+                "email": "none@example.com",
+                "id": 3,
+                "name": "No Address User",
                 "phone": "",
-                "username": "",
+                "username": "nouser",
                 "website": ""
               }
             },
-            "then": [
-              6,
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
-            ],
-            "when": "userToRow(user) is called"
+            "then": {
+              "result": [
+                "3",
+                "No Address User",
+                "nouser",
+                "none@example.com",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called with the incomplete user object"
           },
           "type": "edge"
         },
         {
-          "description": "Tests behavior when fields are explicitly set to null.",
-          "id": "tc_009_null_fields",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Fields with null values",
+          "description": "Ensure null values are converted to empty CSV fields.",
+          "id": "null_fields_in_user_object",
+          "implementation_id": "usertorow",
+          "name": "null_fields_in_user_object",
           "test_setup": {
             "given": {
               "user": {
-                "address": {
-                  "city": null,
-                  "street": null,
-                  "zipcode": null
-                },
+                "address": null,
+                "company": null,
                 "email": null,
                 "id": null,
                 "name": null,
@@ -430,740 +439,1764 @@
                 "website": null
               }
             },
-            "then": [
-              null,
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
-            ],
-            "when": "userToRow(user) is called"
+            "then": {
+              "result": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify extra non-standard fields do not break transformation.",
+          "id": "unexpected_additional_fields_are_ignored",
+          "implementation_id": "usertorow",
+          "name": "unexpected_additional_fields_are_ignored",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone"
+                },
+                "email": "extra@example.com",
+                "extraField1": "ignored",
+                "extraField2": 12345,
+                "id": 4,
+                "name": "Extra Fields",
+                "username": "extra"
+              }
+            },
+            "then": {
+              "result": [
+                "4",
+                "Extra Fields",
+                "extra",
+                "extra@example.com",
+                "",
+                "",
+                "Boone",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
           },
           "type": "edge"
         },
         {
-          "description": "Tests behavior when string fields contain numbers or booleans.",
-          "id": "tc_010_non_string_types",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "Fields with non-string types",
+          "description": "Verify behavior when user object is empty.",
+          "id": "empty_user_object",
+          "implementation_id": "usertorow",
+          "name": "empty_user_object",
+          "test_setup": {
+            "given": {
+              "user": {}
+            },
+            "then": {
+              "result": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify whitespace values are preserved.",
+          "id": "whitespace_only_fields",
+          "implementation_id": "usertorow",
+          "name": "whitespace_only_fields",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": " ",
+                  "geo": {
+                    "lat": " ",
+                    "lng": " "
+                  },
+                  "street": " ",
+                  "suite": " ",
+                  "zipcode": " "
+                },
+                "company": {
+                  "bs": " ",
+                  "catchPhrase": " ",
+                  "name": " "
+                },
+                "email": " ",
+                "id": " ",
+                "name": " ",
+                "phone": " ",
+                "username": " ",
+                "website": " "
+              }
+            },
+            "then": {
+              "result": [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
+                " "
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that missing geo.lat or geo.lng fields result in empty CSV values.",
+          "id": "partial_geo_coordinates",
+          "implementation_id": "usertorow",
+          "name": "partial_geo_coordinates",
+          "test_setup": {
+            "given": {
+              "user": {
+                "address": {
+                  "city": "Boone",
+                  "geo": {
+                    "lat": "45.0"
+                  },
+                  "street": "Test",
+                  "suite": "Test",
+                  "zipcode": "00000"
+                },
+                "company": {
+                  "name": "Test Co"
+                },
+                "email": "x@example.com",
+                "id": 10,
+                "name": "Partial Geo",
+                "phone": "1234",
+                "username": "partial",
+                "website": "test.com"
+              }
+            },
+            "then": {
+              "result": [
+                "10",
+                "Partial Geo",
+                "partial",
+                "x@example.com",
+                "Test",
+                "Test",
+                "Boone",
+                "00000",
+                "45.0",
+                "",
+                "1234",
+                "test.com",
+                "Test Co",
+                "",
+                ""
+              ]
+            },
+            "when": "userToRow is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that numeric and boolean values inside user fields are stringified correctly.",
+          "id": "numeric_and_boolean_fields_stringified",
+          "implementation_id": "usertorow",
+          "name": "numeric_and_boolean_fields_stringified",
           "test_setup": {
             "given": {
               "user": {
                 "address": {
                   "city": true,
-                  "street": 999,
-                  "zipcode": false
+                  "geo": {
+                    "lat": 100,
+                    "lng": false
+                  },
+                  "street": 123,
+                  "suite": 0,
+                  "zipcode": 99999
                 },
-                "email": false,
-                "id": 7,
-                "name": 12345,
-                "phone": 5551234,
-                "username": true,
-                "website": null
+                "company": {
+                  "bs": false,
+                  "catchPhrase": true,
+                  "name": 55
+                },
+                "email": 77,
+                "id": 42,
+                "name": 88,
+                "phone": true,
+                "username": false,
+                "website": 1234
               }
             },
-            "then": [
-              7,
-              "12345",
-              "true",
-              "false",
-              "999",
-              "true",
-              "false",
-              "5551234",
-              ""
-            ],
-            "when": "userToRow(user) is called"
+            "then": {
+              "result": [
+                "42",
+                "88",
+                "false",
+                "77",
+                "123",
+                "0",
+                "true",
+                "99999",
+                "100",
+                "false",
+                "true",
+                "1234",
+                "55",
+                "true",
+                "false"
+              ]
+            },
+            "when": "userToRow is called"
           },
-          "type": "edge"
+          "type": "positive"
         },
         {
-          "description": "Tests behavior when only the 'id' field is present.",
-          "id": "tc_011_minimum_fields",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "User object with only id field",
+          "description": "Verify behavior when input is not a user object.",
+          "id": "non_object_input_rejected",
+          "implementation_id": "usertorow",
+          "name": "non_object_input_rejected",
           "test_setup": {
             "given": {
-              "user": {
-                "id": 8
-              }
+              "user": "invalid"
             },
-            "then": [
-              8,
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              ""
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests that extra fields are ignored and only specified fields are included in the CSV row.",
-          "id": "tc_012_additional_unexpected_fields",
-          "implementation_id": "user_to_row_csv_conversion",
-          "name": "User object contains additional unexpected fields",
-          "test_setup": {
-            "given": {
-              "user": {
-                "address": {
-                  "city": "Extratown",
-                  "street": "Extra St",
-                  "zipcode": "88888"
-                },
-                "company": "ExtraCorp",
-                "email": "extra@example.com",
-                "hobbies": [
-                  "reading",
-                  "coding"
-                ],
-                "id": 9,
-                "name": "Extra Fields",
-                "phone": "555-8888",
-                "username": "extra",
-                "website": "extra.com"
-              }
+            "then": {
+              "result": [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ]
             },
-            "then": [
-              9,
-              "Extra Fields",
-              "extra",
-              "extra@example.com",
-              "Extra St",
-              "Extratown",
-              "88888",
-              "555-8888",
-              "extra.com"
-            ],
-            "when": "userToRow(user) is called"
-          },
-          "type": "positive"
-        }
-      ],
-      "test_path": ".codevalid/tests/task_2938716450_20260225110000/user_to_row_csv_conversion.ts"
-    },
-    {
-      "implementation_id": "write_csv_to_file",
-      "test_cases": [
-        {
-          "description": "Verifies that writeFileSync writes a CSV file with correct headers and rows for a non-empty user array from the API.",
-          "id": "writeFileSync_positive_normal_data",
-          "implementation_id": "write_csv_to_file",
-          "name": "Write CSV File with Normal User Data",
-          "test_setup": {
-            "given": "A valid CSV string generated from 10 user objects with all fields present. The target CSV_PATH does not exist or is empty.",
-            "then": "A CSV file is created at CSV_PATH containing all users as rows, with headers matching the JSON object keys, and all data present and untransformed.",
-            "when": "writeFileSync is called with the CSV string and valid CSV_PATH."
-          },
-          "type": "positive"
-        },
-        {
-          "description": "Ensures that writeFileSync overwrites an existing CSV file with new content when called.",
-          "id": "writeFileSync_positive_overwrite_existing",
-          "implementation_id": "write_csv_to_file",
-          "name": "Overwrite Existing CSV File",
-          "test_setup": {
-            "given": "A valid CSV string generated from user objects. A CSV file already exists at CSV_PATH with old content.",
-            "then": "The existing file is overwritten with the new CSV content.",
-            "when": "writeFileSync is called with the new CSV string and CSV_PATH."
-          },
-          "type": "positive"
-        },
-        {
-          "description": "Checks that writeFileSync does not create or modify a CSV file if the API returns an empty array.",
-          "id": "writeFileSync_edge_empty_user_list",
-          "implementation_id": "write_csv_to_file",
-          "name": "No File Created for Empty User List",
-          "test_setup": {
-            "given": "An empty array is returned from the API, resulting in an empty CSV string. No file exists at CSV_PATH.",
-            "then": "No CSV file is created or modified. An error is signaled.",
-            "when": "writeFileSync is called with the empty CSV string."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Ensures that writeFileSync does not create or modify a file if the API request fails (e.g., network error or 500 response).",
-          "id": "writeFileSync_negative_api_failure",
-          "implementation_id": "write_csv_to_file",
-          "name": "No File Written on API Failure",
-          "test_setup": {
-            "given": "No CSV string is generated due to API failure. No file exists at CSV_PATH.",
-            "then": "No CSV file is created or modified. An error is signaled.",
-            "when": "writeFileSync is called with undefined or null input."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verifies CSV file creation when some user objects have missing optional fields; columns should still be present with empty values.",
-          "id": "writeFileSync_edge_missing_fields_in_user",
-          "implementation_id": "write_csv_to_file",
-          "name": "Write CSV with Missing Fields in Some Users",
-          "test_setup": {
-            "given": "A CSV string is generated from mixed user objects, some missing optional fields (e.g., phone).",
-            "then": "CSV file contains all columns, with missing fields as empty strings in the corresponding rows.",
-            "when": "writeFileSync is called with this CSV string."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests performance and correctness when writing a CSV file for a very large user array.",
-          "id": "writeFileSync_edge_large_user_list",
-          "implementation_id": "write_csv_to_file",
-          "name": "Write CSV File with Large Number of Users",
-          "test_setup": {
-            "given": "A CSV string generated from 10,000 user objects. CSV_PATH is available.",
-            "then": "CSV file is successfully created with all users and headers, and is accessible.",
-            "when": "writeFileSync is called with this large CSV string."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Ensures that writeFileSync handles file system permission errors gracefully.",
-          "id": "writeFileSync_negative_no_write_permission",
-          "implementation_id": "write_csv_to_file",
-          "name": "Fail to Write CSV File due to No Write Permission",
-          "test_setup": {
-            "given": "A valid CSV string and a CSV_PATH in a directory without write permission.",
-            "then": "No CSV file is created. An appropriate file system error is signaled.",
-            "when": "writeFileSync is called."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Ensures that writeFileSync signals an error if the target path is invalid (e.g., directory does not exist).",
-          "id": "writeFileSync_negative_invalid_csv_path",
-          "implementation_id": "write_csv_to_file",
-          "name": "Fail to Write CSV File due to Invalid Path",
-          "test_setup": {
-            "given": "A valid CSV string and a non-existent directory in the CSV_PATH.",
-            "then": "No CSV file is created. An appropriate file system error is signaled.",
-            "when": "writeFileSync is called."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verifies correct handling of user data containing commas, quotes, and newlines in CSV fields.",
-          "id": "writeFileSync_edge_special_characters_in_fields",
-          "implementation_id": "write_csv_to_file",
-          "name": "Write CSV File with Special Characters in User Data",
-          "test_setup": {
-            "given": "A CSV string generated from user objects with fields containing commas, quotes, and newlines.",
-            "then": "CSV file is created with proper escaping of special characters, readable by standard CSV parsers.",
-            "when": "writeFileSync is called."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Ensures that if writeFileSync is interrupted (e.g., process crash), the CSV file is not left in a partially written state.",
-          "id": "writeFileSync_negative_partial_write_interrupted",
-          "implementation_id": "write_csv_to_file",
-          "name": "Partial Write is Not Allowed",
-          "test_setup": {
-            "given": "A valid CSV string, but the process is interrupted during write (simulate disk full or forced termination).",
-            "then": "CSV file is either not created or is cleaned up; no partial/corrupt file remains.",
-            "when": "writeFileSync is called."
+            "when": "userToRow is called"
           },
           "type": "negative"
         }
       ],
-      "test_path": ".codevalid/tests/task_2938716450_20260225110000/write_csv_to_file.ts"
+      "test_path": ".codevalid/tests/task_2938716450_20260225110000/usertorow.ts"
     },
     {
-      "implementation_id": "csv_to_json_conversion",
+      "implementation_id": "escapecsvfield",
       "test_cases": [
         {
-          "description": "Tests conversion of a valid CSV string with multiple user rows and fields.",
-          "id": "TC1_positive_basic_csv",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "Converts standard CSV to JSON",
+          "description": "Ensures plain text with no commas, quotes, or newlines is returned unchanged",
+          "id": "escape_field_without_special_characters",
+          "implementation_id": "escapecsvfield",
+          "name": "escape field without special characters",
           "test_setup": {
-            "given": "csv = 'id,name,username,email\\n1,Leanne Graham,Bret,Sincere@april.biz\\n2,Ervin Howell,Antonette,Shanna@melissa.tv'",
-            "then": [
-              {
-                "email": "Sincere@april.biz",
-                "id": "1",
-                "name": "Leanne Graham",
-                "username": "Bret"
-              },
-              {
-                "email": "Shanna@melissa.tv",
-                "id": "2",
-                "name": "Ervin Howell",
-                "username": "Antonette"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = HelloWorld",
+            "then": "function returns HelloWorld",
+            "when": "escapeCsvField is called"
           },
           "type": "positive"
         },
         {
-          "description": "Tests function with CSV containing only a header row.",
-          "id": "TC2_edge_only_header",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with header only returns empty array",
+          "description": "Comma requires the field to be wrapped in quotes",
+          "id": "escape_field_containing_comma",
+          "implementation_id": "escapecsvfield",
+          "name": "escape field containing comma",
           "test_setup": {
-            "given": "csv = 'id,name,username,email'",
-            "then": [],
-            "when": "csvToJson(csv) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests the case when an empty string is passed as CSV.",
-          "id": "TC3_edge_empty_string",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "Empty CSV string returns empty array",
-          "test_setup": {
-            "given": "csv = ''",
-            "then": [],
-            "when": "csvToJson(csv) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests CSV input with only whitespace (spaces and newlines).",
-          "id": "TC4_edge_whitespace_lines",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with only whitespace returns empty array",
-          "test_setup": {
-            "given": "csv = '    \\n   '",
-            "then": [],
-            "when": "csvToJson(csv) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests CSV with fields containing commas and quoted values.",
-          "id": "TC5_positive_fields_with_commas_and_quotes",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV fields with internal commas and quotes are parsed correctly",
-          "test_setup": {
-            "given": "csv = 'id,name,username,email\\n3,\"Smith, John\",\"johnny,smith\",\"john,smith@email.com\"'",
-            "then": [
-              {
-                "email": "john,smith@email.com",
-                "id": "3",
-                "name": "Smith, John",
-                "username": "johnny,smith"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = Hello,World",
+            "then": "function returns \"Hello,World\"",
+            "when": "escapeCsvField is called"
           },
           "type": "positive"
         },
         {
-          "description": "Tests behavior when a row has fewer fields than the header.",
-          "id": "TC6_edge_missing_field_in_row",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with missing fields in a row",
+          "description": "Quote requires doubling internal quotes and wrapping the field",
+          "id": "escape_field_containing_quote",
+          "implementation_id": "escapecsvfield",
+          "name": "escape field containing quote",
           "test_setup": {
-            "given": "csv = 'id,name,username,email\\n4,Jane Doe,janedoe'",
-            "then": [
-              {
-                "email": "",
-                "id": "4",
-                "name": "Jane Doe",
-                "username": "janedoe"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = He said \"Hi\"",
+            "then": "function returns \"He said \"\"Hi\"\"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Newline requires the field to be wrapped in quotes",
+          "id": "escape_field_containing_newline",
+          "implementation_id": "escapecsvfield",
+          "name": "escape field containing newline",
+          "test_setup": {
+            "given": "input = Hello\nWorld",
+            "then": "function returns \"Hello\nWorld\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "String containing comma, quotes, and newline must be wrapped and quotes doubled",
+          "id": "escape_field_containing_multiple_special_characters",
+          "implementation_id": "escapecsvfield",
+          "name": "escape field containing multiple special characters",
+          "test_setup": {
+            "given": "input = \"Hello, World\"\n",
+            "then": "function returns \"\"\"Hello, World\"\"\\n\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Function converts non-string input to string before evaluating",
+          "id": "convert_number_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "convert number to string",
+          "test_setup": {
+            "given": "input = 12345",
+            "then": "function returns 12345",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Boolean inputs should be stringified",
+          "id": "convert_boolean_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "convert boolean to string",
+          "test_setup": {
+            "given": "input = true",
+            "then": "function returns true",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Null should be converted to string 'null'",
+          "id": "convert_null_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "convert null to string",
+          "test_setup": {
+            "given": "input = null",
+            "then": "function returns null",
+            "when": "escapeCsvField is called"
           },
           "type": "edge"
         },
         {
-          "description": "Tests behavior when a row has more fields than the header.",
-          "id": "TC7_edge_extra_field_in_row",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with extra fields in a row",
+          "description": "Undefined should convert to 'undefined'",
+          "id": "convert_undefined_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "convert undefined to string",
           "test_setup": {
-            "given": "csv = 'id,name,username\\n5,Sam Smith,samsmith,extra_field'",
-            "then": [
-              {
-                "id": "5",
-                "name": "Sam Smith",
-                "username": "samsmith"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = undefined",
+            "then": "function returns undefined",
+            "when": "escapeCsvField is called"
           },
           "type": "edge"
         },
         {
-          "description": "Tests function behavior when given null as input.",
-          "id": "TC8_negative_null_input",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "Passing null as CSV input",
+          "description": "Empty string should be returned unchanged because it contains no special characters",
+          "id": "empty_string_handling",
+          "implementation_id": "escapecsvfield",
+          "name": "empty string handling",
           "test_setup": {
-            "given": "csv = null",
-            "then": "TypeError or returns empty array depending on implementation",
-            "when": "csvToJson(csv) is called"
+            "given": "input = \"\"",
+            "then": "function returns \"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Quotes must be doubled and wrapped",
+          "id": "string_of_only_quotes",
+          "implementation_id": "escapecsvfield",
+          "name": "string of only quotes",
+          "test_setup": {
+            "given": "input = \"\"\"\"",
+            "then": "function returns \"\"\"\"\"\"\"\"\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Comma triggers wrapping in quotes",
+          "id": "string_of_only_commas",
+          "implementation_id": "escapecsvfield",
+          "name": "string of only commas",
+          "test_setup": {
+            "given": "input = \",,,\"",
+            "then": "function returns \",,,\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Newlines trigger wrapping in quotes",
+          "id": "string_of_only_newlines",
+          "implementation_id": "escapecsvfield",
+          "name": "string of only newlines",
+          "test_setup": {
+            "given": "input = \"\\n\\n\"",
+            "then": "function returns \"\\n\\n\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures function handles long inputs without failure",
+          "id": "very_long_string_input",
+          "implementation_id": "escapecsvfield",
+          "name": "very long string input",
+          "test_setup": {
+            "given": "input = string of length 10,000 with no special chars",
+            "then": "returned string matches input exactly",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures wrapping and quote doubling works even on long strings",
+          "id": "very_long_string_with_special_characters",
+          "implementation_id": "escapecsvfield",
+          "name": "very long string with special characters",
+          "test_setup": {
+            "given": "input = long string including quotes, commas, and newlines",
+            "then": "returned string is wrapped and quotes doubled",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Objects become '[object Object]' unless they override toString",
+          "id": "object_as_input",
+          "implementation_id": "escapecsvfield",
+          "name": "object as input",
+          "test_setup": {
+            "given": "input = {}",
+            "then": "returns \"[object Object]\"",
+            "when": "escapeCsvField is called"
           },
           "type": "negative"
         },
         {
-          "description": "Tests function with CSV containing blank lines between data rows.",
-          "id": "TC9_edge_blank_lines_between_rows",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with blank lines between rows",
+          "description": "Arrays stringify into comma-separated representation which requires escaping",
+          "id": "array_as_input",
+          "implementation_id": "escapecsvfield",
+          "name": "array as input",
           "test_setup": {
-            "given": "csv = 'id,name,username,email\\n\\n6,Ann,ann99,ann@email.com\\n\\n7,Bob,bobby,bob@email.com'",
-            "then": [
-              {
-                "email": "ann@email.com",
-                "id": "6",
-                "name": "Ann",
-                "username": "ann99"
-              },
-              {
-                "email": "bob@email.com",
-                "id": "7",
-                "name": "Bob",
-                "username": "bobby"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests a CSV field with a quoted value that contains a newline character.",
-          "id": "TC10_positive_fields_with_newlines_in_quotes",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV field contains newline within quoted value",
-          "test_setup": {
-            "given": "csv = 'id,name,username,email\\n8,\"Alice\\nWonder\",\"alicew\",\"alice@wonder.com\"'",
-            "then": [
-              {
-                "email": "alice@wonder.com",
-                "id": "8",
-                "name": "Alice\nWonder",
-                "username": "alicew"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = [1,2,3]",
+            "then": "returns \"1,2,3\"",
+            "when": "escapeCsvField is called"
           },
           "type": "positive"
         },
         {
-          "description": "Tests behavior when the CSV header contains duplicate field names.",
-          "id": "TC11_edge_duplicate_header_fields",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with duplicate header fields",
+          "description": "Function converts to its string representation which contains characters requiring quotes",
+          "id": "function_as_input",
+          "implementation_id": "escapecsvfield",
+          "name": "function as input",
           "test_setup": {
-            "given": "csv = 'id,name,name,email\\n9,John,Johnny,johnny@email.com'",
-            "then": [
-              {
-                "email": "johnny@email.com",
-                "id": "9",
-                "name": "Johnny"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Tests function behavior when input is a non-string type.",
-          "id": "TC12_negative_non_string_input",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "Non-string input (number) returns error or empty array",
-          "test_setup": {
-            "given": "csv = 12345",
-            "then": "TypeError or returns empty array depending on implementation",
-            "when": "csvToJson(csv) is called"
+            "given": "input = function() {}",
+            "then": "returns quoted version of function code",
+            "when": "escapeCsvField is called"
           },
           "type": "negative"
         },
         {
-          "description": "Tests handling of spaces in header fields.",
-          "id": "TC13_edge_header_with_spaces",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV header with leading/trailing spaces is trimmed",
+          "description": "Ensures leading/trailing spaces are not modified",
+          "id": "trim_not_applied",
+          "implementation_id": "escapecsvfield",
+          "name": "trim not applied",
           "test_setup": {
-            "given": "csv = ' id , name , username , email \\n10, Spacey,spacey,spacey@email.com'",
-            "then": [
-              {
-                "email": "spacey@email.com",
-                "id": "10",
-                "name": "Spacey",
-                "username": "spacey"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = \"   spaced text   \"",
+            "then": "returns input unchanged unless spaces contain special chars",
+            "when": "escapeCsvField is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures \\r triggers wrapping in quotes",
+          "id": "escape_carriage_return",
+          "implementation_id": "escapecsvfield",
+          "name": "escape carriage return",
+          "test_setup": {
+            "given": "input = \"Hello\rWorld\"",
+            "then": "function returns \"Hello\rWorld\"",
+            "when": "escapeCsvField is called"
           },
           "type": "edge"
         },
         {
-          "description": "Tests function with CSV that ends with multiple newline characters.",
-          "id": "TC14_edge_trailing_newlines",
-          "implementation_id": "csv_to_json_conversion",
-          "name": "CSV with trailing newlines",
+          "description": "CRLF newline requires wrapping",
+          "id": "escape_windows_newline",
+          "implementation_id": "escapecsvfield",
+          "name": "escape windows newline",
           "test_setup": {
-            "given": "csv = 'id,name,username,email\\n11,Last,lastname,last@email.com\\n\\n\\n'",
-            "then": [
-              {
-                "email": "last@email.com",
-                "id": "11",
-                "name": "Last",
-                "username": "lastname"
-              }
-            ],
-            "when": "csvToJson(csv) is called"
+            "given": "input = \"Hello\r\nWorld\"",
+            "then": "function returns \"Hello\r\nWorld\"",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures NaN converts to string 'NaN'",
+          "id": "nan_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "nan_to_string",
+          "test_setup": {
+            "given": "input = NaN",
+            "then": "function returns NaN",
+            "when": "escapeCsvField is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures Infinity converts to 'Infinity'",
+          "id": "infinity_to_string",
+          "implementation_id": "escapecsvfield",
+          "name": "infinity_to_string",
+          "test_setup": {
+            "given": "input = Infinity",
+            "then": "function returns Infinity",
+            "when": "escapeCsvField is called"
           },
           "type": "edge"
         }
-      ],
-      "test_path": ".codevalid/tests/task_2938716450_20260225110000/csv_to_json_conversion.ts"
+      ]
     },
     {
-      "implementation_id": "parse_csv_line_for_robust_parsing",
+      "implementation_id": "csvtojson",
       "test_cases": [
         {
-          "description": "Verifies that the function correctly parses a CSV line with several unquoted fields separated by commas.",
-          "id": "parsecsvline_basic_fields",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse simple CSV with unquoted fields",
+          "description": "Verifies that the function correctly converts a valid CSV string with a header and multiple rows into JSON objects.",
+          "id": "csv_to_json_happy_path_multiple_rows",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_happy_path_multiple_rows",
           "test_setup": {
-            "given": "line = '1,John Doe,jdoe@example.com'",
-            "then": "['1', 'John Doe', 'jdoe@example.com']",
-            "when": "parseCsvLine(line) is called"
+            "given": "A CSV string with header 'id,name,email' and two valid data rows.",
+            "then": "An array of two JSON objects is returned with keys mapped to header names.",
+            "when": "csvToJson is called with the CSV string."
           },
           "type": "positive"
         },
         {
-          "description": "Checks that quoted fields containing commas are parsed as a single field.",
-          "id": "parsecsvline_quoted_fields",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse CSV with quoted fields containing commas",
+          "description": "Ensures the function correctly parses a CSV with a header and a single data row.",
+          "id": "csv_to_json_single_row",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_single_row",
           "test_setup": {
-            "given": "line = '1,\"Doe, John\",jdoe@example.com'",
-            "then": "['1', 'Doe, John', 'jdoe@example.com']",
-            "when": "parseCsvLine(line) is called"
+            "given": "A CSV string with one header line and one data row.",
+            "then": "Returns an array containing a single mapped JSON object.",
+            "when": "csvToJson is executed."
           },
           "type": "positive"
         },
         {
-          "description": "Ensures that double quotes inside quoted fields are handled by escaping (e.g. \"\" -> \").",
-          "id": "parsecsvline_escaped_quotes",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse CSV with fields containing escaped quotes",
+          "description": "Function should return an empty array when the CSV input is an empty string.",
+          "id": "csv_to_json_empty_string",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_empty_string",
           "test_setup": {
-            "given": "line = '2,\"Jane \"\"JJ\"\" Doe\",jane@example.com'",
-            "then": "['2', 'Jane \"JJ\" Doe', 'jane@example.com']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "positive"
-        },
-        {
-          "description": "Verifies that a trailing comma results in an additional empty field at the end.",
-          "id": "parsecsvline_trailing_comma",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse CSV line with trailing comma",
-          "test_setup": {
-            "given": "line = '3,James Smith,'",
-            "then": "['3', 'James Smith', '']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verifies that a leading comma results in an empty field at the start.",
-          "id": "parsecsvline_leading_comma",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse CSV line with leading comma",
-          "test_setup": {
-            "given": "line = ',First Field,Second Field'",
-            "then": "['', 'First Field', 'Second Field']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Checks that multiple consecutive commas produce empty fields.",
-          "id": "parsecsvline_multiple_adjacent_commas",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse CSV line with multiple adjacent commas",
-          "test_setup": {
-            "given": "line = 'one,,three,,,six'",
-            "then": "['one', '', 'three', '', '', 'six']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verifies the function returns a single field of one quote when line = '\"\"'",
-          "id": "parsecsvline_only_quotes",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse line consisting of only quotes",
-          "test_setup": {
-            "given": "line = '\"\"'",
-            "then": "['']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Checks that an empty input line returns a single empty field.",
-          "id": "parsecsvline_empty_line",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse empty line",
-          "test_setup": {
-            "given": "line = ''",
-            "then": "['']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verifies that fields with spaces or tabs are preserved as-is.",
-          "id": "parsecsvline_whitespace_fields",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse fields containing only whitespace",
-          "test_setup": {
-            "given": "line = '  ,\\t,\\n ,\"  \",field'",
-            "then": "['  ', '\\t', '\\n ', '  ', 'field']",
-            "when": "parseCsvLine(line) is called"
-          },
-          "type": "positive"
-        },
-        {
-          "description": "Tests handling of a line with an unclosed quoted field. Should treat the rest of the line as part of the quoted field.",
-          "id": "parsecsvline_unclosed_quote",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse CSV with unclosed quoted field",
-          "test_setup": {
-            "given": "line = '4,\"Unclosed field,still quoted,jdoe@example.com'",
-            "then": "['4', 'Unclosed field,still quoted,jdoe@example.com']",
-            "when": "parseCsvLine(line) is called"
+            "given": "An empty CSV string.",
+            "then": "Returns an empty array.",
+            "when": "The function is executed."
           },
           "type": "negative"
         },
         {
-          "description": "Ensures that a line without any commas returns a single-element array.",
-          "id": "parsecsvline_only_one_field",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse line with only one field",
+          "description": "Function should return an empty array when only header exists but no data rows.",
+          "id": "csv_to_json_only_header_no_rows",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_only_header_no_rows",
           "test_setup": {
-            "given": "line = 'singlefield'",
-            "then": "['singlefield']",
-            "when": "parseCsvLine(line) is called"
+            "given": "A CSV string containing only one header line.",
+            "then": "Returns an empty array because there are less than 2 non-empty lines.",
+            "when": "csvToJson is called."
           },
           "type": "edge"
         },
         {
-          "description": "Checks that embedded newlines in quoted fields are preserved.",
-          "id": "parsecsvline_quoted_field_with_newline",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse quoted field containing a newline character",
+          "description": "Ensures trailing empty lines are ignored.",
+          "id": "csv_to_json_header_with_trailing_newlines",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_header_with_trailing_newlines",
           "test_setup": {
-            "given": "line = '5,\"Line with\\nnewline\",another'",
-            "then": "['5', 'Line with\\nnewline', 'another']",
-            "when": "parseCsvLine(line) is called"
+            "given": "A CSV string with one header and multiple blank lines following.",
+            "then": "Returns an empty array because only one valid line exists.",
+            "when": "csvToJson is executed."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures whitespace-only lines are treated as empty and ignored.",
+          "id": "csv_to_json_whitespace_lines",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_whitespace_lines",
+          "test_setup": {
+            "given": "A CSV containing header, whitespace-only lines, and one valid row.",
+            "then": "Returns one JSON object mapped correctly to the header.",
+            "when": "The function executes."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "If a row has more values than headers, extra values should be ignored based on mapping logic.",
+          "id": "csv_to_json_misaligned_columns_extra_values",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_misaligned_columns_extra_values",
+          "test_setup": {
+            "given": "Header 'id,name' but row contains '1,John,Extra'.",
+            "then": "Only 'id' and 'name' are mapped and returned; 'Extra' is ignored.",
+            "when": "Function is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "If a row has fewer values than headers, missing keys should be assigned empty strings or undefined behavior based on mapping logic.",
+          "id": "csv_to_json_misaligned_columns_missing_values",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_misaligned_columns_missing_values",
+          "test_setup": {
+            "given": "Header 'id,name,email' and row '1,John'.",
+            "then": "Returned object includes id='1', name='John', and email set to an empty string.",
+            "when": "Function executes."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures special characters in CSV fields (commas inside quotes) are properly parsed.",
+          "id": "csv_to_json_special_characters_in_values",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_special_characters_in_values",
+          "test_setup": {
+            "given": "Header 'id,name' and row '1,\"John, Doe\"'.",
+            "then": "Value for name is 'John, Doe'.",
+            "when": "csvToJson executes."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures Unicode characters are parsed correctly.",
+          "id": "csv_to_json_handles_unicode",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_handles_unicode",
+          "test_setup": {
+            "given": "CSV containing Unicode characters like emojis or accented letters.",
+            "then": "Returned JSON correctly preserves all characters.",
+            "when": "Function is executed."
           },
           "type": "positive"
         },
         {
-          "description": "Ensures that a quoted empty field is parsed as an empty string.",
-          "id": "parsecsvline_quoted_empty_field",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse quoted empty field",
+          "description": "Ensures headers with leading/trailing spaces are treated as literal header keys.",
+          "id": "csv_to_json_headers_with_spaces",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_headers_with_spaces",
           "test_setup": {
-            "given": "line = '6,\"\",email@example.com'",
-            "then": "['6', '', 'email@example.com']",
-            "when": "parseCsvLine(line) is called"
+            "given": "Header ' id , name ' with spaced values.",
+            "then": "Returned JSON uses exact spaced header keys.",
+            "when": "Function runs."
           },
           "type": "edge"
         },
         {
-          "description": "Tests a field containing both a comma and an escaped quote.",
-          "id": "parsecsvline_comma_inside_quotes_and_escaped_quote",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Field with both comma and escaped quote",
+          "description": "Ensures value trimming does not occur unless implemented.",
+          "id": "csv_to_json_rows_with_spaces",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_rows_with_spaces",
           "test_setup": {
-            "given": "line = '7,\"Value, with \"\"quote\"\" inside\",test'",
-            "then": "['7', 'Value, with \"quote\" inside', 'test']",
-            "when": "parseCsvLine(line) is called"
+            "given": "Row values include leading/trailing spaces.",
+            "then": "Spaces are preserved in returned JSON.",
+            "when": "Function executes."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a CSV with no commas; each row becomes a single-column value.",
+          "id": "csv_to_json_invalid_csv_no_commas",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_invalid_csv_no_commas",
+          "test_setup": {
+            "given": "CSV with header 'id' and row '123'.",
+            "then": "Returns JSON array with one object { id: '123' }.",
+            "when": "Function runs."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures a CSV consisting entirely of empty or whitespace lines returns an empty array.",
+          "id": "csv_to_json_all_empty_lines",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_all_empty_lines",
+          "test_setup": {
+            "given": "CSV containing blank lines only.",
+            "then": "Returns an empty array.",
+            "when": "csvToJson is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verifies performance and correctness with a large CSV dataset.",
+          "id": "csv_to_json_handles_large_csv",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_handles_large_csv",
+          "test_setup": {
+            "given": "A CSV with thousands of rows.",
+            "then": "Returns JSON array with exactly the same number of objects as rows.",
+            "when": "Function executes."
           },
           "type": "positive"
         },
         {
-          "description": "Checks that a line with only commas produces N+1 empty fields for N commas.",
-          "id": "parsecsvline_only_commas",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse line with only commas",
+          "description": "Verifies behavior when duplicate headers exist.",
+          "id": "csv_to_json_duplicate_headers",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_duplicate_headers",
           "test_setup": {
-            "given": "line = ',,,'",
-            "then": "['', '', '', '']",
-            "when": "parseCsvLine(line) is called"
+            "given": "CSV with header 'id,name,name' and row '1,John,Doe'.",
+            "then": "Later duplicate keys overwrite earlier ones in returned JSON.",
+            "when": "Function runs."
           },
           "type": "edge"
         },
         {
-          "description": "Verifies function's behavior if input is null. Should throw or return error.",
-          "id": "parsecsvline_null_input",
-          "implementation_id": "parse_csv_line_for_robust_parsing",
-          "name": "Parse null as input",
+          "description": "Ensures behavior when header exists but is an empty string.",
+          "id": "csv_to_json_header_empty_string_mcvc",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_header_empty_string",
+          "test_setup": {
+            "given": "CSV with header '' and row 'test'.",
+            "then": "Returns array with one object containing a single key '' mapped to 'test'.",
+            "when": "csvToJson runs."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures rows that contain empty comma-separated values map to empty strings.",
+          "id": "csv_to_json_row_empty_values_t2cx",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_row_empty_values",
+          "test_setup": {
+            "given": "Header 'a,b,c' and row ',,'.",
+            "then": "Object returned is { a:'', b:'', c:'' }.",
+            "when": "csvToJson runs."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles quoted values containing newline characters.",
+          "id": "csv_to_json_quoted_multiline_value_pwd9",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_quoted_multiline_value",
+          "test_setup": {
+            "given": "Header 'id,notes' and row '1,\"Line1\nLine2\"'.",
+            "then": "JSON preserves embedded newline inside value.",
+            "when": "csvToJson runs."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures CSV using Windows CRLF line endings is parsed correctly.",
+          "id": "csv_to_json_handles_crlf_newlines",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_handles_crlf_newlines",
+          "test_setup": {
+            "given": "A CSV where lines end with \\r\\n.",
+            "then": "Lines are split correctly and mapped into JSON objects.",
+            "when": "csvToJson is executed."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures UTF\u20138 BOM-prefixed CSV headers are handled.",
+          "id": "csv_to_json_bom_header_support",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_bom_header_support",
+          "test_setup": {
+            "given": "A CSV whose header begins with a UTF\u20138 BOM character.",
+            "then": "The BOM is treated as part of the header key and mapped literally.",
+            "when": "csvToJson executes."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Checks behavior when a data row contains unmatched quotes.",
+          "id": "csv_to_json_unbalanced_quotes",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_unbalanced_quotes",
+          "test_setup": {
+            "given": "A CSV row such as '1,\"John Doe'.",
+            "then": "Row is parsed literally based on split logic and returned without special quote handling.",
+            "when": "csvToJson executes."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures function handles non-string input safely.",
+          "id": "csv_to_json_non_string_input",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_non_string_input",
+          "test_setup": {
+            "given": "Input is not a string (e.g., null or number).",
+            "then": "Function returns an empty array based on failure to split into valid lines.",
+            "when": "csvToJson is executed."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures the output JSON array preserves the row order from the CSV.",
+          "id": "csv_to_json_preserves_row_order",
+          "implementation_id": "csvtojson",
+          "name": "csv_to_json_preserves_row_order",
+          "test_setup": {
+            "given": "CSV with header 'id' and rows '1' then '2'.",
+            "then": "Returned array is [{id:'1'}, {id:'2'}] in the same order.",
+            "when": "csvToJson runs."
+          },
+          "type": "positive"
+        }
+      ]
+    },
+    {
+      "implementation_id": "parsecsvline",
+      "test_cases": [
+        {
+          "description": "Parses a simple CSV line without quotes.",
+          "id": "parse_simple_csv_line",
+          "implementation_id": "parsecsvline",
+          "name": "parse_simple_csv_line",
+          "test_setup": {
+            "given": "line = \"John,Doe,30\"",
+            "then": "[\"John\", \"Doe\", \"30\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Parses a CSV line where a field contains quotes and commas.",
+          "id": "parse_csv_with_quoted_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_with_quoted_field",
+          "test_setup": {
+            "given": "line = \"John,\\\"Doe, Jr.\\\",30\"",
+            "then": "[\"John\", \"Doe, Jr.\", \"30\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Parses a CSV line where a field is fully quoted.",
+          "id": "parse_csv_with_entirely_quoted_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_with_entirely_quoted_field",
+          "test_setup": {
+            "given": "line = \"\\\"Hello World\\\",Test\"",
+            "then": "[\"Hello World\", \"Test\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Parses a CSV line containing escaped double quotes within a quoted field.",
+          "id": "parse_csv_with_escaped_quotes",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_with_escaped_quotes",
+          "test_setup": {
+            "given": "line = \"\\\"He said \\\"\\\"Hello\\\"\\\"\\\"\",World\"",
+            "then": "[\"He said \\\"Hello\\\"\", \"World\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles an empty input line.",
+          "id": "parse_csv_empty_line",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_empty_line",
+          "test_setup": {
+            "given": "line = \"\"",
+            "then": "[\"\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a line with a trailing comma indicating an empty final field.",
+          "id": "parse_csv_trailing_comma",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_trailing_comma",
+          "test_setup": {
+            "given": "line = \"John,Doe,30,\"",
+            "then": "[\"John\", \"Doe\", \"30\", \"\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a leading comma representing an empty first field.",
+          "id": "parse_csv_leading_comma",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_leading_comma",
+          "test_setup": {
+            "given": "line = \",John,Doe\"",
+            "then": "[\"\", \"John\", \"Doe\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a string containing only commas, producing empty fields.",
+          "id": "parse_csv_only_commas",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_only_commas",
+          "test_setup": {
+            "given": "line = \",,\"",
+            "then": "[\"\", \"\", \"\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Error scenario where quotes are opened but not closed.",
+          "id": "parse_csv_unclosed_quotes",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_unclosed_quotes",
+          "test_setup": {
+            "given": "line = \"\\\"Hello,World\"",
+            "then": "Function returns [\"Hello,World\"] because pseudo code does not explicitly error; validate behavior",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles a field made of a single quote character.",
+          "id": "parse_csv_quote_as_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_quote_as_field",
+          "test_setup": {
+            "given": "line = \"\\\"\\\",A\"",
+            "then": "[\"\", \"A\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles fields with multiple consecutive quote characters.",
+          "id": "parse_csv_multiple_adjacent_quotes",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_multiple_adjacent_quotes",
+          "test_setup": {
+            "given": "line = \"\\\"\\\"\\\"Test\\\"\\\"\\\"\",X\"",
+            "then": "[\"\\\"Test\\\"\", \"X\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures spaces outside quotes are preserved.",
+          "id": "parse_csv_with_spaces_outside_quotes",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_with_spaces_outside_quotes",
+          "test_setup": {
+            "given": "line = \"  John  ,  Doe  \"",
+            "then": "[\"  John  \", \"  Doe  \"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles mixture of quoted and unquoted fields.",
+          "id": "parse_csv_mixed_quotes_and_unquoted_fields",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_mixed_quotes_and_unquoted_fields",
+          "test_setup": {
+            "given": "line = \"123,\\\"abc\\\",xyz\"",
+            "then": "[\"123\", \"abc\", \"xyz\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles very long fields to test boundary conditions.",
+          "id": "parse_csv_long_field_boundary_case",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_long_field_boundary_case",
+          "test_setup": {
+            "given": "line = \"A.repeat(10000),B\"",
+            "then": "[\"A.repeat(10000)\", \"B\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a field containing only quotes.",
+          "id": "parse_csv_only_quotes",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_only_quotes",
+          "test_setup": {
+            "given": "line = \"\\\"\\\"\"",
+            "then": "[\"\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures commas inside unquoted fields are treated as delimiters.",
+          "id": "parse_csv_comma_inside_unquoted_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_comma_inside_unquoted_field",
+          "test_setup": {
+            "given": "line = \"A,B,C\"",
+            "then": "[\"A\", \"B\", \"C\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles empty quoted fields such as \"\" which should parse as an empty string.",
+          "id": "parse_csv_empty_quoted_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_empty_quoted_field",
+          "test_setup": {
+            "given": "line = \"\\\"\\\",B\"",
+            "then": "[\"\", \"B\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a quoted field immediately after a comma.",
+          "id": "parse_csv_quote_right_after_comma",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_quote_right_after_comma",
+          "test_setup": {
+            "given": "line = \",\\\"Hello\\\"\"",
+            "then": "[\"\", \"Hello\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures newline literals inside a quoted field are treated as part of the value.",
+          "id": "parse_csv_field_with_internal_newline_literal",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_field_with_internal_newline_literal",
+          "test_setup": {
+            "given": "line = \"\\\"Hello\\nWorld\\\",X\"",
+            "then": "[\"Hello\\nWorld\", \"X\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Handles a field that contains only whitespace.",
+          "id": "parse_csv_whitespace_only_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_whitespace_only_field",
+          "test_setup": {
+            "given": "line = \"   ,B\"",
+            "then": "[\"   \", \"B\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Ensures commas inside quotes are not treated as delimiters.",
+          "id": "parse_csv_comma_inside_quotes_not_delimiter",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_comma_inside_quotes_not_delimiter",
+          "test_setup": {
+            "given": "line = \"\\\"A,B,C\\\",D\"",
+            "then": "[\"A,B,C\", \"D\"] is returned",
+            "when": "parseCsvLine is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Handles a field that starts with a quote but contains an illegal quote in the middle.",
+          "id": "parse_csv_mismatched_quotes_middle_field",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_mismatched_quotes_middle_field",
+          "test_setup": {
+            "given": "line = \"A,\\\"B\"C, D\"",
+            "then": "Function returns [\"A\", \"B\"C\", \" D\"] per pseudo-code behavior",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles null input by treating it as an empty string.",
+          "id": "parse_csv_null_input",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_null_input",
           "test_setup": {
             "given": "line = null",
-            "then": "TypeError or equivalent error is thrown",
-            "when": "parseCsvLine(line) is called"
+            "then": "[\"\"] is returned or behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles undefined input by treating it as an empty string.",
+          "id": "parse_csv_undefined_input",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_undefined_input",
+          "test_setup": {
+            "given": "line = undefined",
+            "then": "[\"\"] is returned or behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles numeric input by converting to string or validating behavior.",
+          "id": "parse_csv_non_string_input_number",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_non_string_input_number",
+          "test_setup": {
+            "given": "line = 12345",
+            "then": "[\"12345\"] or error behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Handles object input by validating error behavior.",
+          "id": "parse_csv_non_string_input_object",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_non_string_input_object",
+          "test_setup": {
+            "given": "line = {\"value\":\"A,B\"}",
+            "then": "Error behavior validated",
+            "when": "parseCsvLine is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures newline outside quotes is treated as line break or error.",
+          "id": "parse_csv_multiline_unquoted_input",
+          "implementation_id": "parsecsvline",
+          "name": "parse_csv_multiline_unquoted_input",
+          "test_setup": {
+            "given": "line = \"A,B\\nC,D\"",
+            "then": "Behavior validated based on pseudo-code",
+            "when": "parseCsvLine is called"
+          },
+          "type": "edge"
+        }
+      ]
+    },
+    {
+      "implementation_id": "filterusersbylocation",
+      "test_cases": [
+        {
+          "description": "Returns only users whose city is Boone when one user matches.",
+          "id": "filter_users_happy_path_single_match",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_happy_path_single_match",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                },
+                {
+                  "address": {
+                    "city": "Austin"
+                  },
+                  "id": 2,
+                  "name": "Mary"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "John"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Returns all users whose city is Boone when multiple users match.",
+          "id": "filter_users_multiple_matches",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_multiple_matches",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Jane"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Mike"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 1,
+                  "name": "Jane"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "Mike"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Returns an empty array when no user has city Boone.",
+          "id": "filter_users_no_matches",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_no_matches",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Austin"
+                  },
+                  "id": 10,
+                  "name": "A"
+                },
+                {
+                  "address": {
+                    "city": "Dallas"
+                  },
+                  "id": 11,
+                  "name": "B"
+                }
+              ]
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Returns an empty array when the input list is empty.",
+          "id": "filter_users_empty_list",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_empty_list",
+          "test_setup": {
+            "given": {
+              "users": []
+            },
+            "then": {
+              "result": []
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Skips users without an address field.",
+          "id": "filter_users_missing_address_field",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_missing_address_field",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "id": 1,
+                  "name": "NoAddress"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "WithAddress"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 2,
+                  "name": "WithAddress"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Skips users whose address is null.",
+          "id": "filter_users_null_address",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_null_address",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": null,
+                  "id": 7,
+                  "name": "NullAddress"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 8,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 8,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Skips users whose address does not include a city field.",
+          "id": "filter_users_missing_city_field",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_missing_city_field",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {},
+                  "id": 12,
+                  "name": "NoCity"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 13,
+                  "name": "CorrectCity"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 13,
+                  "name": "CorrectCity"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Ensures city match is case-sensitive and does not match lowercase 'boone'.",
+          "id": "filter_users_city_case_sensitivity",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_city_case_sensitivity",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "boone"
+                  },
+                  "id": 21,
+                  "name": "Lowercase"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 22,
+                  "name": "ProperCase"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 22,
+                  "name": "ProperCase"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Returns empty array or error handling behavior when input is not an array.",
+          "id": "filter_users_invalid_input_type",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_invalid_input_type",
+          "test_setup": {
+            "given": {
+              "users": "invalid"
+            },
+            "then": "Function should return an empty array or handle the error per implementation rules",
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Filters users when city contains leading or trailing spaces.",
+          "id": "filter_users_trim_spaces",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_trim_spaces",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": " Boone "
+                  },
+                  "id": 31,
+                  "name": "SpaceUser"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 32,
+                  "name": "NormalUser"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 32,
+                  "name": "NormalUser"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Filters users when address.city is a non-string value.",
+          "id": "filter_users_non_string_city",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_non_string_city",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": 123
+                  },
+                  "id": 41,
+                  "name": "NumericCity"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 42,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 42,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Filters users when user object contains extra unexpected fields.",
+          "id": "filter_users_extra_fields",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_extra_fields",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "extra": "value",
+                  "id": 51,
+                  "name": "John"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "extra": "value",
+                  "id": 51,
+                  "name": "John"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Ensures function does not mutate the original input array.",
+          "id": "filter_users_input_immutability",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_input_immutability",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 61,
+                  "name": "Original"
+                }
+              ]
+            },
+            "then": {
+              "original_users_unchanged": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 61,
+                  "name": "Original"
+                }
+              ],
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 61,
+                  "name": "Original"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Does not match uppercase 'BOONE' due to case sensitivity.",
+          "id": "filter_users_uppercase_city",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_uppercase_city",
+          "test_setup": {
+            "given": {
+              "users": [
+                {
+                  "address": {
+                    "city": "BOONE"
+                  },
+                  "id": 71,
+                  "name": "Upper"
+                },
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 72,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 72,
+                  "name": "Correct"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Skips null user objects.",
+          "id": "filter_users_null_user_object",
+          "implementation_id": "filterusersbylocation",
+          "name": "filter_users_null_user_object",
+          "test_setup": {
+            "given": {
+              "users": [
+                null,
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 81,
+                  "name": "ValidUser"
+                }
+              ]
+            },
+            "then": {
+              "result": [
+                {
+                  "address": {
+                    "city": "Boone"
+                  },
+                  "id": 81,
+                  "name": "ValidUser"
+                }
+              ]
+            },
+            "when": "filterUsersByLocation is called"
           },
           "type": "negative"
         }
-      ],
-      "test_path": ".codevalid/tests/task_2938716450_20260225110000/parse_csv_line_for_robust_parsing.ts"
+      ]
     }
   ],
   "component": [],
   "endpoint": [
     {
-      "implementation_id": "users_api_endpoint",
+      "implementation_id": "get_api_users",
       "test_cases": [
         {
-          "description": "Verifies that the endpoint returns a JSON array of users when the CSV file exists and contains valid data.",
-          "id": "get_users_csv_exists_valid_data",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file exists and is valid",
+          "description": "Verify that the endpoint returns parsed JSON when users.csv exists and contains valid data.",
+          "id": "get_users_happy_path_csv_exists",
+          "implementation_id": "get_api_users",
+          "name": "get_users_happy_path_csv_exists",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
           },
           "request_method": "GET",
           "request_url": "/api/users",
-          "response_body_json": [
-            {
-              "address": "{\"street\":\"Kulas Light\",\"suite\":\"Apt. 556\",\"city\":\"Gwenborough\",\"zipcode\":\"92998-3874\",\"geo\":{\"lat\":\"-37.3159\",\"lng\":\"81.1496\"}}",
-              "company": "{\"name\":\"Romaguera-Crona\",\"catchPhrase\":\"Multi-layered client-server neural-net\",\"bs\":\"harness real-time e-markets\"}",
-              "email": "Sincere@april.biz",
-              "id": 1,
-              "name": "Leanne Graham",
-              "phone": "1-770-736-8031 x56442",
-              "username": "Bret",
-              "website": "hildegard.org"
-            }
-          ],
+          "response_body_json": {
+            "users": [
+              {
+                "email": "sample@example.com",
+                "id": 1,
+                "name": "Sample User"
+              }
+            ]
+          },
           "response_status_code": 200,
           "test_setup": {
-            "given": "CSV file exists with valid user data corresponding to JSONPlaceholder API response.",
-            "then": "Response status is 200 and body is the JSON representation of users read from CSV.",
-            "when": "A GET request is made to /api/users."
+            "given": "A valid users.csv file exists with properly formatted CSV content.",
+            "then": "The service reads the file, converts it to JSON, and returns HTTP 200 with the JSON array.",
+            "when": "GET /api/users is called."
           },
           "type": "positive"
         },
         {
-          "description": "Verifies that the endpoint returns a 404 status and an appropriate error message when the CSV file is missing.",
+          "description": "Verify that the endpoint returns 404 when the users.csv file does not exist.",
           "id": "get_users_csv_missing",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file does not exist",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_missing",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
@@ -1171,41 +2204,21 @@
           "request_method": "GET",
           "request_url": "/api/users",
           "response_body_json": {
-            "error": "User data file not found"
+            "error": "users.csv not found"
           },
           "response_status_code": 404,
           "test_setup": {
-            "given": "CSV file does not exist in persistent storage.",
-            "then": "Response status is 404 and body contains an appropriate error message.",
-            "when": "A GET request is made to /api/users."
+            "given": "No users.csv file exists in the storage path.",
+            "then": "The service returns HTTP 404 with an error JSON payload.",
+            "when": "GET /api/users is called."
           },
           "type": "negative"
         },
         {
-          "description": "Checks that the endpoint returns an empty JSON array when the CSV exists but contains no user data.",
-          "id": "get_users_csv_exists_empty_file",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file exists but is empty",
-          "request_body_json": {},
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "GET",
-          "request_url": "/api/users",
-          "response_body_json": [],
-          "response_status_code": 200,
-          "test_setup": {
-            "given": "CSV file exists but is empty (no data rows, possibly only headers).",
-            "then": "Response status is 200 and body is an empty array.",
-            "when": "A GET request is made to /api/users."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verifies that the endpoint returns an error if the CSV file is present but has invalid format.",
-          "id": "get_users_csv_exists_malformed",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file exists but is malformed",
+          "description": "Verify behavior when users.csv exists but contains only headers and no data rows.",
+          "id": "get_users_csv_empty_file",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_empty_file",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
@@ -1213,103 +2226,244 @@
           "request_method": "GET",
           "request_url": "/api/users",
           "response_body_json": {
-            "error": "Failed to parse user data file"
+            "users": []
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv exists but contains only column headers.",
+            "then": "The system returns an empty JSON array.",
+            "when": "GET /api/users is invoked."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify behavior when users.csv exists but contains corrupted or unparsable data.",
+          "id": "get_users_csv_corrupted_content",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_corrupted_content",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Unable to parse CSV"
           },
           "response_status_code": 500,
           "test_setup": {
-            "given": "CSV file exists but contains malformed or corrupted data.",
-            "then": "Response status is 500 and body contains an appropriate error message.",
-            "when": "A GET request is made to /api/users."
+            "given": "users.csv exists but contains malformed CSV content that csvToJson cannot parse.",
+            "then": "The system returns a 500 internal error indicating parsing failure.",
+            "when": "GET /api/users is performed."
           },
           "type": "negative"
         },
         {
-          "description": "Checks that the endpoint gracefully handles CSV rows with missing fields, returning available fields as null or empty.",
-          "id": "get_users_csv_exists_partial_row",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file contains incomplete user data",
+          "description": "Verify that the endpoint can handle a very large CSV file and return large JSON arrays.",
+          "id": "get_users_large_csv_boundary_test",
+          "implementation_id": "get_api_users",
+          "name": "get_users_large_csv_boundary_test",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
           },
           "request_method": "GET",
           "request_url": "/api/users",
-          "response_body_json": [
-            {
-              "address": null,
-              "company": null,
-              "email": "Shanna@melissa.tv",
-              "id": 2,
-              "name": "Ervin Howell",
-              "phone": null,
-              "username": null,
-              "website": null
-            }
-          ],
+          "response_body_json": {
+            "users": "T.repeat(5000)"
+          },
           "response_status_code": 200,
           "test_setup": {
-            "given": "CSV file exists with at least one row missing some columns (e.g., 'username' is empty).",
-            "then": "Response includes user objects with missing fields set to null or empty.",
-            "when": "A GET request is made to /api/users."
+            "given": "users.csv exists with thousands of rows.",
+            "then": "The system processes and returns the large JSON response without errors.",
+            "when": "GET /api/users is requested."
           },
           "type": "edge"
         },
         {
-          "description": "Verifies performance and correctness when the CSV file contains a large number of user records.",
-          "id": "get_users_csv_exists_large",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file contains a large number of users",
+          "description": "Simulate slow I/O response but valid CSV. Ensure timeout or successful response.",
+          "id": "get_users_slow_file_read",
+          "implementation_id": "get_api_users",
+          "name": "get_users_slow_file_read",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
           },
           "request_method": "GET",
           "request_url": "/api/users",
-          "response_body_json": "Array of 10000 user objects as per CSV content",
+          "response_body_json": {
+            "users": [
+              {
+                "email": "sample@example.com",
+                "id": 1,
+                "name": "Sample User"
+              }
+            ]
+          },
           "response_status_code": 200,
           "test_setup": {
-            "given": "CSV file exists with 10,000 valid user records.",
-            "then": "Response status is 200 and body contains a JSON array of 10,000 user objects.",
-            "when": "A GET request is made to /api/users."
+            "given": "users.csv exists but disk access is slow.",
+            "then": "The system eventually returns valid JSON without timeout.",
+            "when": "GET /api/users is executed."
           },
           "type": "edge"
         },
         {
-          "description": "Ensures correct parsing and encoding when user fields contain Unicode or special characters.",
-          "id": "get_users_csv_exists_unicode_characters",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users with Unicode and special characters in CSV",
+          "description": "Ensure CSV parser handles whitespace, extra newlines, and returns clean JSON.",
+          "id": "get_users_csv_with_extra_whitespace",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_extra_whitespace",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
           },
           "request_method": "GET",
           "request_url": "/api/users",
-          "response_body_json": [
-            {
-              "address": "123 Stra\u00dfe, M\u00fcnchen",
-              "company": "M\u00fcller & S\u00f6hne",
-              "email": "zoe.m\u00fcller@example.com",
-              "id": 3,
-              "name": "Zo\u00eb M\u00fcller",
-              "phone": "+49 89 123456",
-              "username": "uni\u00a9\u00f8de",
-              "website": "m\u00fcller.de"
-            }
-          ],
+          "response_body_json": {
+            "users": [
+              {
+                "id": 1,
+                "name": "User One"
+              }
+            ]
+          },
           "response_status_code": 200,
           "test_setup": {
-            "given": "CSV file exists with user records containing Unicode and special characters.",
-            "then": "Response status is 200 and body correctly represents Unicode characters.",
-            "when": "A GET request is made to /api/users."
+            "given": "CSV contains trailing spaces and blank lines.",
+            "then": "CSV is parsed cleanly and JSON output is correct.",
+            "when": "GET /api/users is called."
           },
-          "type": "edge"
+          "type": "positive"
         },
         {
-          "description": "Verifies that POST requests to the users endpoint are not allowed.",
-          "id": "get_users_method_not_allowed",
-          "implementation_id": "users_api_endpoint",
-          "name": "POST method not allowed on /api/users",
+          "description": "Ensure system does not process files other than users.csv.",
+          "id": "get_users_non_csv_file_present",
+          "implementation_id": "get_api_users",
+          "name": "get_users_non_csv_file_present",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "users.csv not found"
+          },
+          "response_status_code": 404,
+          "test_setup": {
+            "given": "Only other file types exist (e.g., users.txt) but not users.csv.",
+            "then": "System returns 404 file not found.",
+            "when": "GET /api/users is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Validate that saved CSV (created earlier by other process) respects business rule: only users from Boone are included.",
+          "id": "get_users_filtered_data_context_check",
+          "implementation_id": "get_api_users",
+          "name": "get_users_filtered_data_context_check",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "address": {
+                  "city": "Boone"
+                },
+                "id": 10,
+                "name": "Boone Resident"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "CSV was generated earlier by filtering API users with location Boone.",
+            "then": "Returned content only includes Boone users.",
+            "when": "GET /api/users is executed."
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verify behavior when users.csv exists but the system cannot read it due to permission issues.",
+          "id": "get_users_file_permission_error",
+          "implementation_id": "get_api_users",
+          "name": "get_users_file_permission_error",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Unable to read CSV file"
+          },
+          "response_status_code": 500,
+          "test_setup": {
+            "given": "users.csv exists but file permissions prevent the service from reading it.",
+            "then": "System returns HTTP 500 with an appropriate error message.",
+            "when": "GET /api/users is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that extra columns in the CSV do not break parsing and are included in JSON output.",
+          "id": "get_users_csv_with_extra_unexpected_columns",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_extra_unexpected_columns",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "extra_field": "unexpected_data",
+                "id": 1,
+                "name": "User One"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv contains all expected columns plus additional ones.",
+            "then": "System returns JSON including all additional CSV columns.",
+            "when": "GET /api/users is called."
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verify behavior when users.csv exists but headers are missing or incomplete.",
+          "id": "get_users_csv_missing_headers",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_missing_headers",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "error": "Invalid or missing CSV headers"
+          },
+          "response_status_code": 500,
+          "test_setup": {
+            "given": "users.csv exists but does not contain valid header row.",
+            "then": "System returns HTTP 500 due to invalid CSV structure.",
+            "when": "GET /api/users is requested."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify system response when an unsupported HTTP method is used.",
+          "id": "get_users_invalid_http_method",
+          "implementation_id": "get_api_users",
+          "name": "get_users_invalid_http_method",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
@@ -1317,69 +2471,99 @@
           "request_method": "POST",
           "request_url": "/api/users",
           "response_body_json": {
-            "error": "Method not allowed"
+            "error": "Method Not Allowed"
           },
           "response_status_code": 405,
           "test_setup": {
-            "given": "CSV file exists or does not exist.",
-            "then": "Response status is 405 and body contains a method not allowed error.",
-            "when": "A POST request is made to /api/users."
+            "given": "Client attempts to POST to GET-only endpoint.",
+            "then": "System returns HTTP 405.",
+            "when": "POST /api/users is called."
           },
           "type": "negative"
         },
         {
-          "description": "Checks that the endpoint ignores extraneous columns and only returns columns matching the JSONPlaceholder user object fields.",
-          "id": "get_users_csv_exists_extra_columns",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file has extra columns",
+          "description": "Verify behavior when CSV contains rows with missing values.",
+          "id": "get_users_csv_with_missing_values",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_missing_values",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
           },
           "request_method": "GET",
           "request_url": "/api/users",
-          "response_body_json": [
-            {
-              "address": "{\"street\":\"Hoeger Mall\",\"suite\":\"Apt. 692\",\"city\":\"South Elvis\",\"zipcode\":\"53919-4257\",\"geo\":{\"lat\":\"29.4572\",\"lng\":\"-164.2990\"}}",
-              "company": "{\"name\":\"Robel-Corkery\",\"catchPhrase\":\"Multi-tiered zero tolerance productivity\",\"bs\":\"transition cutting-edge web services\"}",
-              "email": "Julianne.OConner@kory.org",
-              "id": 4,
-              "name": "Patricia Lebsack",
-              "phone": "493-170-9623 x156",
-              "username": "Karianne",
-              "website": "kale.biz"
-            }
-          ],
+          "response_body_json": {
+            "users": [
+              {
+                "email": null,
+                "id": 1,
+                "name": "User One"
+              }
+            ]
+          },
           "response_status_code": 200,
           "test_setup": {
-            "given": "CSV file exists with standard user fields and additional irrelevant columns.",
-            "then": "Response includes only the standard user fields as per JSONPlaceholder schema.",
-            "when": "A GET request is made to /api/users."
+            "given": "users.csv contains some fields left empty.",
+            "then": "System parses missing values as null.",
+            "when": "GET /api/users is invoked."
           },
           "type": "edge"
         },
         {
-          "description": "Checks that the endpoint returns an empty array if the CSV file only has header row and no data rows.",
-          "id": "get_users_csv_exists_headers_only",
-          "implementation_id": "users_api_endpoint",
-          "name": "Retrieve users when CSV file contains only headers",
+          "description": "Verify behavior when CSV contains a UTF-8 BOM and parser still handles headers correctly.",
+          "id": "get_users_csv_with_bom_header",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_bom_header",
           "request_body_json": {},
           "request_headers": {
             "Content-Type": "application/json"
           },
           "request_method": "GET",
           "request_url": "/api/users",
-          "response_body_json": [],
+          "response_body_json": {
+            "users": [
+              {
+                "id": 1,
+                "name": "User One"
+              }
+            ]
+          },
           "response_status_code": 200,
           "test_setup": {
-            "given": "CSV file exists but contains only the header row.",
-            "then": "Response status is 200 and body is an empty array.",
-            "when": "A GET request is made to /api/users."
+            "given": "users.csv begins with a UTF-8 BOM before the header row.",
+            "then": "System parses the header correctly and returns valid JSON.",
+            "when": "GET /api/users is invoked."
           },
           "type": "edge"
+        },
+        {
+          "description": "Verify system behavior with CSV rows containing extremely long field values.",
+          "id": "get_users_csv_with_extremely_long_field_values",
+          "implementation_id": "get_api_users",
+          "name": "get_users_csv_with_extremely_long_field_values",
+          "request_body_json": {},
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "GET",
+          "request_url": "/api/users",
+          "response_body_json": {
+            "users": [
+              {
+                "id": 1,
+                "name": "T.repeat(10000)"
+              }
+            ]
+          },
+          "response_status_code": 200,
+          "test_setup": {
+            "given": "users.csv contains rows where some fields contain extremely long strings.",
+            "then": "System successfully returns JSON without truncation or errors.",
+            "when": "GET /api/users is called."
+          },
+          "type": "boundary"
         }
-      ],
-      "test_path": ".codevalid/tests/task_2938716450_20260225110000/users_api_endpoint.ts"
+      ]
     }
   ]
 }

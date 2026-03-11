@@ -2,64 +2,72 @@
   "task_2938716450_20260225110000": {
     "implementation": [
       {
-        "How_is_it_connected_to_implementation": "Entry point for fetching user data from JSONPlaceholder API, converting it to CSV, and saving it to a file. Handles directory creation and logs success.",
+        "How_is_it_connected_to_implementation": "Implements HTTP GET to JSONPlaceholder, parses response, constructs CSV headers and rows, and writes CSV to storage. Still does not filter by 'Boone' and still writes CSV even when API array is empty, violating acceptance criteria.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
-        "id": "main_fetch_users_and_save_csv",
-        "name": "main()",
-        "pseudo_code": "async function main():\n    fetch user data from JSONPlaceholder API\n    IF fetch fails\n        throw error\n    ELSE\n        parse response as JSON\n        create CSV headers\n        FOR each user in users\n            convert user to CSV row\n        join rows into CSV string\n        create data directory if not exists\n        write CSV string to file\n        log success",
+        "id": "main",
+        "name": "main",
+        "pseudo_code": "FUNCTION main:\n    SEND HTTP GET request to USERS_URL\n    IF response not OK: THROW error\n    PARSE JSON into users array\n    DEFINE headers list\n    MAP users to CSV rows using userToRow\n    JOIN headers and rows into CSV string\n    CREATE data directory if missing\n    WRITE CSV string to CSV_PATH\n    LOG saved message",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts a user object into a CSV row, used by main() to format each user's data for CSV output. Now includes additional fields: id, street, city, zipcode, phone, website.",
-        "change_type": "modified",
-        "file_path": "src/fetch-users.ts",
-        "id": "user_to_row_csv_conversion",
-        "name": "userToRow(u: User)",
-        "pseudo_code": "function userToRow(user):\n    return array of [id, escaped name, escaped username, escaped email, escaped street, escaped city, escaped zipcode, escaped phone, escaped website]",
-        "type": "function"
-      },
-      {
-        "How_is_it_connected_to_implementation": "Writes the generated CSV string to the target file, completing the storage step.",
+        "How_is_it_connected_to_implementation": "Converts a single User object into CSV row values and escapes fields as needed.",
         "change_type": "unchanged",
         "file_path": "src/fetch-users.ts",
-        "id": "write_csv_to_file",
-        "name": "writeFileSync",
-        "pseudo_code": "write CSV string to file at CSV_PATH",
+        "id": "usertorow",
+        "name": "userToRow",
+        "pseudo_code": "FUNCTION userToRow(u):\n    RETURN array of stringified user fields\n    APPLY escapeCsvField to fields containing text",
         "type": "function"
       },
       {
-        "How_is_it_connected_to_implementation": "Converts the CSV file contents into JSON format for the API response. Uses parseCsvLine for robust CSV parsing.",
+        "How_is_it_connected_to_implementation": "Escapes commas, quotes, and newlines to maintain valid CSV formatting.",
+        "change_type": "unchanged",
+        "file_path": "src/fetch-users.ts",
+        "id": "escapecsvfield",
+        "name": "escapeCsvField",
+        "pseudo_code": "FUNCTION escapeCsvField(value):\n    CONVERT value to string\n    IF value contains ',', '\"', or '\\n':\n        RETURN quoted string with escaped quotes\n    ELSE:\n        RETURN string",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Exposes saved CSV user information. Reads CSV, converts to JSON, and returns it if present.",
         "change_type": "unchanged",
         "file_path": "src/server.ts",
-        "id": "csv_to_json_conversion",
-        "name": "csvToJson(csv: string)",
-        "pseudo_code": "function csvToJson(csv):\n    split CSV into lines\n    IF less than 2 lines\n        return empty array\n    ELSE\n        parse header\n        FOR each line\n            map fields to header\n        return array of user objects",
-        "type": "function"
-      },
-      {
-        "How_is_it_connected_to_implementation": "API endpoint to retrieve the stored user data as JSON, reading from the CSV file created by main(). Handles missing file with 404 and error message.",
-        "change_type": "unchanged",
-        "file_path": "src/server.ts",
-        "id": "users_api_endpoint",
-        "name": "app.get('/api/users')",
-        "pseudo_code": "on GET /api/users:\n    IF CSV file does not exist\n        respond with 404 and error message\n    ELSE\n        read CSV file\n        convert CSV to JSON\n        respond with JSON data",
+        "id": "get_api_users",
+        "name": "GET /api/users",
+        "pseudo_code": "ENDPOINT GET /api/users:\n    IF CSV file does not exist: RETURN 404\n    READ CSV file from storage\n    PARSE CSV using csvToJson\n    RETURN JSON array",
         "type": "endpoint"
       },
       {
-        "How_is_it_connected_to_implementation": "Parses a single CSV line, handling quoted fields and commas. Used by csvToJson to ensure correct field extraction.",
-        "change_type": "new",
+        "How_is_it_connected_to_implementation": "Parses CSV text into JSON objects returned by the API endpoint.",
+        "change_type": "unchanged",
         "file_path": "src/server.ts",
-        "id": "parse_csv_line_for_robust_parsing",
-        "name": "parseCsvLine(line: string)",
-        "pseudo_code": "function parseCsvLine(line):\n    FOR each character in line\n        IF quote detected\n            toggle inQuotes or handle escaped quote\n        ELSE IF comma outside quotes\n            push current field to result\n        ELSE\n            append character to current field\n    push last field to result\n    return array of fields",
+        "id": "csvtojson",
+        "name": "csvToJson",
+        "pseudo_code": "FUNCTION csvToJson(csv):\n    SPLIT into lines and filter out empty ones\n    IF fewer than 2 lines: RETURN empty array\n    PARSE header line\n    FOR each remaining line:\n        PARSE into fields\n        MAP fields to header names\n    RETURN resulting array",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "Parses lines from CSV respecting quotes and escaped characters.",
+        "change_type": "unchanged",
+        "file_path": "src/server.ts",
+        "id": "parsecsvline",
+        "name": "parseCsvLine",
+        "pseudo_code": "FUNCTION parseCsvLine(line):\n    ITERATE characters\n    HANDLE quoted and unquoted field segments\n    RETURN list of parsed fields",
+        "type": "function"
+      },
+      {
+        "How_is_it_connected_to_implementation": "No implementation exists for filtering user data by 'Boone' before saving CSV.",
+        "change_type": "unchanged",
+        "file_path": "src/fetch-users.ts",
+        "id": "filterusersbylocation",
+        "name": "filterUsersByLocation",
+        "pseudo_code": "",
         "type": "function"
       }
     ],
     "missing_implementations": [
-      "No UI component exists to trigger the fetch or display the CSV export.",
-      "No automated scheduling or trigger for running main() (fetch-users.ts) \u2013 must be run manually.",
-      "No error handling for file write failures or directory creation failures in fetch-users.ts beyond mkdirSync and writeFileSync exceptions."
+      "before saving information check filter for data with location as Boone",
+      "If the API request fails or the response is empty, the system does not create or modify the CSV file and signals an error."
     ]
   }
 }
